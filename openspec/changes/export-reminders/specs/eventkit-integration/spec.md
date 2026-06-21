@@ -8,7 +8,7 @@
 - **THEN** компиляция успешна, оба метода доступны для вызова
 
 ### Requirement: EventKitReminderService запрашивает доступ к Reminders
-`EventKitReminderService` SHALL при инициализации создавать экземпляр `EKEventStore` и при первом вызове `fetchAllReminders()` запрашивать доступ к `.reminder` через `requestAccess(to:completion:)`.
+`EventKitReminderService` SHALL при инициализации создавать экземпляр `EKEventStore` и при первом вызове `fetchAllReminders()` запрашивать доступ к `.reminder` через `requestFullAccessToReminders()` (async API, macOS 14+).
 
 #### Scenario: Доступ предоставлен
 - **WHEN** пользователь предоставил доступ к Reminders

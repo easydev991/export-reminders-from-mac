@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: CLI точка входа
-Приложение SHALL использовать `@main` entry point с `ParsableCommand`. Имя команды SHALL быть `export-reminders`.
+Приложение SHALL использовать `@main` entry point с `AsyncParsableCommand` (требуется для асинхронного `run()`). Имя команды SHALL быть `export-reminders`.
 
 #### Scenario: Запуск без аргументов
 - **WHEN** команда вызывается без аргументов

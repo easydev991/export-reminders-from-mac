@@ -129,6 +129,30 @@ func csvExporterNilFields() throws {
     try FileManager.default.removeItem(at: url)
 }
 
+@Test("CSVExporter экранирует переводы строк в значениях")
+func csvExporterEscapesNewlines() throws {
+    let exporter = CSVExporter()
+    let url = FileManager.default.temporaryDirectory
+        .appendingPathComponent(UUID().uuidString)
+        .appendingPathExtension("csv")
+
+    let reminder = ReminderItem(
+        id: "1",
+        listName: "Заметки",
+        title: "Список дел",
+        notes: "Купить молоко\nКупить хлеб\nПозвонить врачу",
+        priority: 0,
+        isCompleted: false
+    )
+    try exporter.export([reminder], to: url)
+    let data = try Data(contentsOf: url)
+    let content = try #require(String(data: data, encoding: .utf8))
+
+    #expect(content.contains("\"Купить молоко\nКупить хлеб\nПозвонить врачу\""))
+
+    try FileManager.default.removeItem(at: url)
+}
+
 @Test("CSVExporter форматирует даты в ISO 8601")
 func csvExporterDateFormat() throws {
     let exporter = CSVExporter()
