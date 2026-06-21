@@ -1,166 +1,181 @@
-# План: Export Reminders — выгрузка напоминаний из iCloud / приложения «Напоминания»
+# План: Export Reminders — Swift CLI + EventKit (TDD)
 
 ## 1. Цель
 
-Создать инструмент для выгрузки (экспорта) всех напоминаний из Apple Reminders (iCloud) на macOS в читаемый формат: JSON, CSV, Markdown и/или ICS.
+Swift command-line инструмент для выгрузки всех напоминаний из Apple Reminders (iCloud) на macOS в JSON.
 
-Репозиторий: `github.com/your-account/export-reminders` (пока пустой).
-
----
-
-## 2. Подходы к решению
-
-### A. Swift Command-Line Tool (EventKit) — **рекомендуется**
-
-| Характеристика | Значение |
-|---|---|
-| Язык | Swift (SPM-пакет) |
-| Фреймворк | `EventKit` / `EKEventStore` + `EKReminder` |
-| Формат | Command-line tool |
-| Сложность | Средняя |
-| Плюсы | Официальный API; типизирован; можно собрать как бинарник; читабельный код |
-| Минусы | Требуется подпись кода с entitlements; TCC-разрешение для CLI-тулзов сложнее, чем для GUI-приложений |
-
-**Особенность macOS TCC**: Command-line инструменты **не получают** стандартный TCC-диалог. Чтобы получить доступ к напоминаниям, нужно либо:
-- Запускать через приложение с GUI (минимальное SwiftUI-приложение, которое вызывает CLI), либо
-- Подписать бинарник с `com.apple.security.personal-information.reminders` и воспользоваться `authopen` / `tccutil`, либо
-- Сделать гибрид: минимальное GUI-приложение (даже без окна), которое через `XPC` или `Process` запускает логику экспорта от имени приложения.
-
-**Более практичный вариант**: сделать **минимальное macOS-приложение** (можно без UI, `LSUIElement=true` в Info.plist), которое использует EventKit, и предоставить CLI-интерфейс через аргументы командной строки. Приложение получит TCC-диалог при первом запуске.
-
-### B. AppleScript / osascript — **быстрый старт**
-
-| Характеристика | Значение |
-|---|---|
-| Язык | AppleScript / JXA |
-| Формат | `.applescript` или `.js` скрипт |
-| Сложность | Низкая |
-| Плюсы | Не требует компиляции, подписи, entitlements; работает «из коробки» |
-| Минусы | Медленный (на больших коллекциях); нет типизации; сложнее поддерживать; ограниченный контроль ошибок |
-
-> **Итог**: проект на Swift (подход A) — основной трек. AppleScript можно добавить как быстрый скрипт в `scripts/` для тех, кому не нужна компиляция.
+**Почему Swift, а не AppleScript/JXA**: 1 000+ напоминаний через IPC к приложению «Напоминания» обрабатываются минутами. Swift + EventKit напрямую читает базу данных Reminders через нативный фреймворк без межпроцессных вызовов — вся выгрузка за **1–2 секунды**.
 
 ---
 
-## 3. Форматы экспорта
+## 2. Структура проекта (SPM)
 
-Для каждого формата — свой output-модуль:
-
-| Формат | Назначение |
-|---|---|
-| **JSON** | Машиночитаемый, можно передавать в другие системы |
-| **CSV** | Импорт в Excel/Google Sheets |
-| **Markdown** | Человекочитаемый, можно архивировать в git |
-| **ICS** (iCalendar) | Импорт в Календарь / другие календарные приложения (VTODO) |
-
----
-
-## 4. Поля напоминаний для экспорта
-
-Из `EKReminder` и AppleScript dictionary можно получить:
-
-- `title` — заголовок
-- `notes` — заметки
-- `priority` — приоритет (1–5, 0 = none)
-- `completed` — завершено ли
-- `completionDate` — дата завершения
-- `dueDate` — срок (due date)
-- `creationDate` — дата создания
-- `lastModifiedDate` — дата изменения
-- `calendar.title` — название списка (категории)
-- `alarms` — напоминания-будильники
-- `recurrenceRules` — правила повторения
-- `location` — геолокация (если привязана)
-- `url` — URL (если есть)
-
----
-
-## 5. Этапы реализации
-
-### Этап 1: Исследование и прототип
-
-- [x] Определиться с подходом (Swift + EventKit)
-- [ ] Создать SPM-пакет (`swift package init --type executable`)
-- [ ] Подключить `EventKit.framework` (входит в macOS SDK)
-- [ ] Написать минимальный прототип: запрос доступа к напоминаниям, вывод count в консоль
-- [ ] Проверить TCC: собрать, запустить, убедиться, что появляется диалог разрешения
-- [ ] Подписать бинарник для ad-hoc distribution (или настроить Development signing)
-
-### Этап 2: Модели данных (Domain Layer)
-
-- [ ] Создать модель `ReminderItem` (value type) с полями из раздела 4
-- [ ] Создать модель `ReminderList` (список/категория)
-- [ ] Написать мапперы из `EKReminder` / `EKCalendar` в доменные модели
-- [ ] Написать unit-тесты для мапперов
-- [ ] Написать unit-тесты для моделей (Equatable, Codable для JSON)
-
-### Этап 3: Data Layer — получение данных через EventKit
-
-- [ ] Создать протокол `ReminderServiceProtocol`
-- [ ] Реализовать `EventKitReminderService`, который:
-  - Запрашивает доступ через `EKEventStore.requestAccess(to:)`
-  - Загружает все списки (`calendars(for: .reminder)`)
-  - Загружает все напоминания через `predicateForReminders(in:)`
-  - Маппит в `ReminderItem` / `ReminderList`
-- [ ] Написать unit-тесты с мок-сервисом
-- [ ] Обработать граничные случаи: пустые списки, nil-поля, cancelled-доступ
-
-### Этап 4: Output-модули (сериализация)
-
-- [ ] Создать протокол `ReminderExporter` с методом `export(_ items:, to url:)`
-- [ ] Реализовать `JSONExporter` — `JSONEncoder` с `.prettyPrinted`
-- [ ] Реализовать `CSVExporter` — ручная запись CSV с экранированием полей
-- [ ] Реализовать `MarkdownExporter` — группировка по спискам, Markdown-формат
-- [ ] Реализовать `ICSExporter` — формат VTODO для iCalendar
-- [ ] Написать unit-тесты для каждого экспортёра (проверка корректности вывода)
-
-### Этап 5: CLI-интерфейс
-
-- [ ] Создать структуру аргументов (использовать `ArgumentParser` от Apple)
-  - `--format` (json, csv, md, ics) — обязательный
-  - `--output` (путь к файлу или директории) — опциональный
-  - `--list` (фильтр по имени списка) — опциональный
-  - `--completed` (true/false) — опциональный фильтр
-- [ ] Реализовать главную координацию: сервис → экспортёр → запись в файл
-- [ ] Обработать ошибки (нет доступа, нет данных, ошибки записи)
-- [ ] Вывести понятный help и error messages
-
-### Этап 6: Сборка и подпись (macOS distribution)
-
-- [ ] Настроить сборку через `xcodebuild` или `swift build`
-- [ ] Настроить entitlements: `com.apple.security.personal-information.reminders`
-- [ ] Hardened Runtime: включить, добавить exception если нужно
-- [ ] Подписать бинарник (Development или ad-hoc)
-- [ ] Создать `Makefile` или скрипт для сборки
-- [ ] Написать инструкцию по настройке TCC (первый запуск, System Settings)
-
-### Этап 7: README и документация
-
-- [ ] README.md с описанием, примерами использования
-- [ ] Инструкция по первому запуску (TCC permission)
-- [ ] Примеры вывода для каждого формата
-- [ ] Скрипт `scripts/export-reminders.applescript` как быстрый fallback
+```
+export-reminders/
+├── Package.swift
+├── Sources/
+│   └── ExportReminders/
+│       ├── ExportReminders.swift               # точка входа (CLI)
+│       ├── Models/
+│       │   ├── ReminderItem.swift
+│       │   └── ReminderList.swift
+│       ├── Services/
+│       │   ├── ReminderServiceProtocol.swift
+│       │   ├── EventKitReminderService.swift
+│       │   └── EventKitReminderServiceError.swift
+│       └── Exporters/
+│           ├── ReminderExporterProtocol.swift
+│           ├── JSONExporter.swift
+│           ├── CSVExporter.swift
+│           └── MarkdownExporter.swift
+├── Tests/
+│   └── ExportRemindersTests/
+│       ├── ReminderItemTests.swift
+│       ├── ReminderListTests.swift
+│       ├── EventKitReminderServiceTests.swift
+│       ├── JSONExporterTests.swift
+│       ├── CSVExporterTests.swift
+│       └── MarkdownExporterTests.swift
+├── scripts/
+│   ├── export-reminders.js                     # JXA fallback
+│   └── export-reminders.applescript            # AppleScript fallback
+├── PLAN.md
+└── .gitignore
+```
 
 ---
 
-## 6. Граничные случаи и обработка ошибок
+## 3. Этапы реализации (TDD: Red → Green → Refactor)
 
-| Случай | Обработка |
-|---|---|
-| Нет доступа к напоминаниям | Чёткое сообщение с инструкцией по System Settings → Privacy → Reminders |
-| Нет напоминаний | Пустой экспорт (корректный JSON `[]`, CSV с заголовками, пустой md) |
-| Очень много напоминаний | Прогресс-бар (опционально), потоковая запись в файл |
-| Спецсимволы в названиях | Экранирование в CSV, валидный JSON |
-| Повторяющиеся напоминания | Каждое вхождение — отдельная запись |
-| Удалённые списки | iCloud синхронизирует; показываем то, что доступно на устройстве |
+### Этап 1: Модели данных (Domain Layer)
+
+**Red**: Написать тесты для моделей.
+- `ReminderItem` — Equatable, Codable (JSON encode/decode)
+- `ReminderList` — название, цвет, id
+- Проверить инициализацию со всеми полями, включая опциональные
+
+**Green**: Реализовать модели.
+```swift
+struct ReminderItem: Codable, Equatable {
+    let id: String
+    let listName: String
+    let title: String
+    let notes: String?
+    let dueDate: Date?
+    let completionDate: Date?
+    let creationDate: Date?
+    let modificationDate: Date?
+    let priority: Int
+    let isCompleted: Bool
+    let recurrenceRule: String?
+    let url: String?
+}
+```
+
+**Refactor**: Убедиться, что поля опциональны там, где нужно.
 
 ---
 
-## 7. Зависимости
+### Этап 2: Data Layer — Service
 
-**Внешние зависимости** — минимум:
-- `swift-argument-parser` (от Apple) — для CLI-аргументов
-- Всё остальное — Foundation + EventKit (macOS SDK)
+**Red**: Написать тесты с мок-сервисом, реализующим `ReminderServiceProtocol`:
+- `fetchAllReminders() async throws -> [ReminderItem]`
+- `fetchAllLists() async throws -> [ReminderList]`
+- mock отдаёт предопределённый набор напоминаний
+
+**Green**: Реализовать `EventKitReminderService`:
+- Запрос доступа через `EKEventStore.requestAccess(to: .reminder)`
+- Загрузка календарей: `store.calendars(for: .reminder)`
+- Загрузка напоминаний: `store.fetchReminders(matching:)`
+- Маппинг `EKReminder` → `ReminderItem`
+- Маппинг `EKCalendar` → `ReminderList`
+
+**Refactor**: Добавить обработку ошибок (доступ запрещён, пустые списки, iCloud-ошибки).
+
+---
+
+### Этап 3: Output-модули (Exporters)
+
+**Red**: Тесты для каждого экспортёра:
+- **JSONExporter**: проверить, что на выходе валидный JSON с корректными полями
+- **CSVExporter**: проверить заголовки, экранирование кавычек и запятых
+- **MarkdownExporter**: проверить группировку по спискам, форматирование
+
+**Green**: Реализовать три экспортёра через общий протокол:
+```swift
+protocol ReminderExporter {
+    func export(_ reminders: [ReminderItem], to url: URL) throws
+}
+```
+
+**Refactor**: Вынести общую логику (сортировка, фильтрация, группировка).
+
+---
+
+### Этап 4: CLI (Command-Line Interface)
+
+**Зависимости**: `swift-argument-parser`
+
+**Red**: Написать интеграционные тесты, проверяющие парсинг аргументов:
+- `--format` (json | csv | md)
+- `--output` (URL)
+- `--list` (фильтр по имени списка, опционально, multiple)
+- `--completed` (true | false — фильтр по статусу)
+
+**Green**: Реализовать `ExportRemindersCLI`:
+```swift
+@main
+struct ExportRemindersCLI: ParsableCommand {
+    @Option var format: Format = .json
+    @Option var output: String = "./reminders_export.json"
+    @Option var list: [String] = []
+    @Option var completed: Bool? = nil
+
+    func run() throws {
+        // 1. Service → fetch
+        // 2. Exporter → export
+        // 3. Print result
+    }
+}
+```
+
+**Refactor**: Обработка ошибок, понятные сообщения, сигнатура выхода.
+
+---
+
+### Этап 5: Сборка, подпись и запуск
+
+- Настроить entitlements: `com.apple.security.personal-information.reminders`
+- Собрать через `swift build -c release`
+- Подписать ad-hoc: `codesign --sign - --entitlements`
+- Запустить и проверить TCC-диалог
+
+Если TCC-диалог не появится для CLI-бинарника:
+- Собрать как минимальное приложение с `LSUIElement=true`
+- Или использовать `tccutil` для ручного добавления разрешения
+
+---
+
+## 4. Поля для экспорта
+
+| Поле | Тип | Источник |
+|---|---|---|
+| `id` | String | EKReminder.calendarItemIdentifier |
+| `listName` | String | EKCalendar.title |
+| `title` | String | EKReminder.title |
+| `notes` | String? | EKReminder.notes |
+| `dueDate` | Date? | EKReminder.dueDateComponents |
+| `completionDate` | Date? | EKReminder.completionDate |
+| `creationDate` | Date? | EKReminder.creationDate |
+| `modificationDate` | Date? | EKReminder.lastModifiedDate |
+| `priority` | Int | EKReminder.priority (0..9) |
+| `isCompleted` | Bool | EKReminder.isCompleted |
+| `recurrenceRule` | String? | EKRecurrenceRule → description |
+| `url` | String? | EKReminder.url |
+
+---
+
+## 5. Зависимости
 
 ```swift
 // Package.swift
@@ -169,74 +184,26 @@ dependencies: [
 ]
 ```
 
----
-
-## 8. Критерии завершения
-
-- [ ] `swift build` проходит без ошибок
-- [ ] `swift run export-reminders --format json --output ~/Desktop/reminders.json` выгружает все напоминания
-- [ ] `swift run export-reminders --format csv --output ~/Desktop/reminders.csv` выгружает в CSV
-- [ ] `swift run export-reminders --format md --output ~/Desktop/reminders.md` выгружает в Markdown
-- [ ] `swift run export-reminders --format ics --output ~/Desktop/reminders.ics` выгружает в iCalendar
-- [ ] Все unit-тесты проходят
-- [ ] README написан с инструкциями
+Внешние: `EventKit.framework` (macOS SDK, без дополнительных зависимостей).
 
 ---
 
-## 9. Альтернатива (JXA / AppleScript) — быстрый старт
+## 6. Критерии завершения
 
-Параллельно с основным Swift-треком можно добавить скрипт `scripts/export-reminders.js`, который экспортирует все напоминания в JSON через `osascript -l JavaScript`.
+- [ ] `swift test` — все unit-тесты проходят
+- [ ] `swift run export-reminders --format json` выгружает все напоминания в JSON
+- [ ] `swift run export-reminders --format csv --output ./out.csv` выгружает в CSV
+- [ ] `swift run export-reminders --format md --output ./out.md` выгружает в Markdown
+- [ ] `swift run export-reminders --list "Покупки" --completed false` — фильтрация работает
+- [ ] Выгрузка 1 000+ напоминаний занимает < 5 секунд
+- [ ] README с инструкцией по сборке и настройке TCC
 
-**Важно про JXA**: в экосистеме Apple свойства объектов (имя, даты, заметки) отдаются не как обычные значения, а как функции-указатели. Чтобы получить реальное значение, их **нужно вызывать со скобками `()`**.
+---
 
-```javascript
-// export-reminders.js — запуск: osascript -l JavaScript export-reminders.js
-const Reminders = Application('Reminders');
-const lists = Reminders.lists();
-const allItems = [];
+## 7. Что остаётся от AppleScript/JXA
 
-lists.forEach(list => {
-  const listName = list.name(); // функция-указатель → строка
-  const reminders = list.reminders();
-
-  reminders.forEach(r => {
-    // Правила повторения могут быть недоступны — оборачиваем в try/catch
-    let recurrenceRule = "";
-    try {
-      recurrenceRule = r.recurrence() || "";
-    } catch(e) {
-      recurrenceRule = "";
-    }
-
-    allItems.push({
-      list: listName,
-      title: r.name() || "",
-      notes: r.body() || "",            // заметки к напоминанию
-      dueDate: r.dueDate() ? r.dueDate().toString() : null,
-      completed: r.completed() || false,
-      priority: r.priority() || 0,
-      recurrence: recurrenceRule         // например: "FREQ=DAILY;"
-    });
-  });
-});
-
-// Файл создаётся в текущей директории (рядом со скриптом)
-const scriptPath = Path(__filename);
-const scriptDir = scriptPath.toString().replace(/\/[^/]+$/, "");
-const filePath = scriptDir + "/reminders_export.json";
-
-const app = Application.currentApplication();
-app.includeStandardAdditions = true;
-
-// Создаём или перезаписываем файл
-const file = app.openForAccess(Path(filePath), { writePermission: true });
-app.setEof(file, { to: 0 });
-app.write(JSON.stringify(allItems, null, 2), { to: file, as: "text" });
-app.closeAccess(file);
-
-console.log("Успешно экспортировано! Файл: " + filePath);
-```
-
-Без подписи, без компиляции, сразу работает. Но медленнее на больших наборах.
+В `scripts/` остаются как fallback для тех, у кого мало напоминаний и нет желания собирать бинарник:
+- `export-reminders.js` — JXA-скрипт
+- `export-reminders.applescript` — AppleScript-скрипт
 
 ---
