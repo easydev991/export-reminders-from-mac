@@ -4,6 +4,8 @@ import Foundation
 import Testing
 
 @Suite(.serialized) struct CLITestSuite {}
+// Сериализован из-за общего состояния TestDependencies (static vars).
+// Рефакторинг: передавать зависимости через конструктор — отдельная задача.
 
 extension CLITestSuite {
     // MARK: - Argument Parsing
@@ -139,7 +141,7 @@ extension CLITestSuite {
 
         let exported = try #require(mockExporter.exportedReminders)
         #expect(exported.count == 1)
-        #expect(exported[0].isCompleted == true)
+        #expect(exported[0].isCompleted)
     }
 
     @Test("CLI выводит сообщение об ошибке доступа в stderr")

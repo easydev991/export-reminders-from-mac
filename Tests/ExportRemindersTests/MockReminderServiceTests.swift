@@ -44,13 +44,10 @@ func mockServiceReturnsEmpty() async throws {
 }
 
 @Test("MockReminderService выбрасывает ошибку")
-func mockServiceThrowsError() async {
+func mockServiceThrowsError() async throws {
     let service = MockReminderService(errorToThrow: EventKitReminderServiceError.accessDenied)
 
-    do {
-        _ = try await service.fetchAllReminders()
-        #expect(Bool(false), "Expected error to be thrown")
-    } catch {
-        #expect(error as? EventKitReminderServiceError == .accessDenied)
+    await #expect(throws: EventKitReminderServiceError.accessDenied) {
+        try await service.fetchAllReminders()
     }
 }

@@ -39,19 +39,18 @@ func mappingEKReminderToReminderItem() throws {
     #expect(item.notes == "Лучше безлактозное")
     #expect(item.listName == calendar.title)
     #expect(item.priority == 5)
-    #expect(item.isCompleted == false)
+    #expect(!item.isCompleted)
     #expect(item.url == "https://example.com")
     #expect(item.recurrenceRule != nil)
     #expect(item.dueDate != nil)
 }
 
 @Test("Маппинг EKReminder → ReminderItem с минимальными полями")
-func mappingEKReminderMinimal() {
+func mappingEKReminderMinimal() throws {
     let store = EKEventStore()
     let ekReminder = EKReminder(eventStore: store)
     ekReminder.title = "Простая задача"
-    let calendar2 = store.defaultCalendarForNewReminders()
-    #expect(calendar2 != nil)
+    let calendar2 = try #require(store.defaultCalendarForNewReminders())
     ekReminder.calendar = calendar2
     ekReminder.isCompleted = false
     ekReminder.priority = 0
