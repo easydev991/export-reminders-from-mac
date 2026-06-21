@@ -1,4 +1,4 @@
-# export-reminders
+# export-reminders-from-mac
 
 Swift CLI-инструмент для экспорта напоминаний из Apple Reminders (iCloud) на macOS в JSON и CSV.
 
