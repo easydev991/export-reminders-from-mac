@@ -1,64 +1,37 @@
 # AGENTS.md — Export Reminders
 
-## Build & Test
+## Key facts
 
-```bash
-swift build                  # debug
-swift build -c release       # release
-swift test                   # all tests (Swift Testing, not XCTest)
-swift test --filter TestSuiteName   # single suite
-swift run export-reminders --format json
-```
+- **SPM-only** — no `.xcodeproj`. Build/test from repo root.
+- **macOS 14+**, `EventKit.framework` linked in Package.swift.
+- **Single executable target** `ExportReminders`, single test target `ExportRemindersTests`.
+- **`swift test --filter SuiteName`** — filters by test suite, not individual test name.
 
 ## Formatting
 
 ```bash
 swiftformat .
 ```
-SwiftFormat 0.61+ installed via Homebrew at `/opt/homebrew/bin/swiftformat`.
-Run **before every commit** — no exceptions.
+SwiftFormat 0.61+ (`/opt/homebrew/bin/swiftformat`).
+Run **before every commit**.
 
-## Project Structure
+## Structure
 
-- **SPM executable** — single target `ExportReminders`, test target `ExportRemindersTests`
-- **No .xcodeproj** — SPM-only. Run `swift build`/`swift test` from repo root
 - `Sources/ExportReminders/Models/`, `Services/`, `Exporters/` + `ExportReminders.swift` (entrypoint)
 - `Tests/ExportRemindersTests/` mirrors source structure
 - `scripts/` — JXA/AppleScript fallbacks. **Do not delete.**
-- `PLAN.md` — source of truth for architecture and field mapping
-- `openspec/changes/export-reminders/` — spec-driven artifacts (proposal → design → specs → tasks)
+- `README.md` — архитектура, поля модели, примеры использования
+- `openspec/specs/` — main specifications (domain-models, eventkit-integration, json-export, csv-export, cli-interface)
+- `openspec/changes/archive/` — archived changes (spec-driven)
 
-## Testing Rules (critical)
+## Testing (Swift Testing only)
 
 - `import Testing` — **never** `import XCTest`
 - Every test: `@Test("русское описание")`
-- Assertions: `#expect(condition)`, `try #require(optional)` — never `== true`/`== false`
-- TDD cycle: Red (write failing test) → Green (minimal impl) → Refactor
+- Assertions: `#expect(condition)`, `try #require(optional)`
+- Never write `== true` / `== false` in assertions
 - Mock via protocols: `ReminderServiceProtocol`, `ReminderExporterProtocol`
-- Shared fixtures in `Tests/ExportRemindersTests/Fixtures/`
-
-## Dependencies
-
-- `swift-argument-parser` (from: "1.2.0") — only external package
-- `EventKit.framework` — system, linked in Package.swift
-- macOS 14+ target only
-
-## Formats
-
-| Format | Role |
-|--------|------|
-| JSON   | Canonical — full data preservation, ISO 8601 dates, `encodeIfPresent` for nil fields |
-| CSV    | Universal table — English column names, comma-quote escaping, ISO 8601 dates |
-
-**NOT included**: Markdown (human-readable only, not for import), ICS (VTODO unsupported by Android apps).
-
-## Security
-
-Entitlement required: `com.apple.security.personal-information.reminders`
-After `swift build -c release`:
-```bash
-codesign --sign - --entitlements entitlements.plist .build/release/export-reminders
-```
+- Shared fixtures: `Tests/ExportRemindersTests/Fixtures/`
 
 ## Language
 
