@@ -5,3 +5,7 @@
 *.xcodeproj/project.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 DerivedData/
+
+# Экспортированные файлы напоминаний
+reminders_export.json
+*.export.csv

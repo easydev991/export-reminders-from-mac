@@ -7,7 +7,7 @@
 - [x] 1.3 Добавить `EventKit.framework` в зависимости таргета `ExportReminders` (через `linkerSettings` или системную линковку)
 - [x] 1.4 Создать структуру папок: `Sources/ExportReminders/Models/`, `Services/`, `Exporters/`
 - [x] 1.5 Создать структуру папок: `Tests/ExportRemindersTests/` с теми же подпапками
-- [x] 1.6 Создать `.gitignore` для `.build/`, `.swiftpm/`, `DerivedData/`
+- [x] 1.6 Создать `.gitignore` для `.build/`, `.swiftpm/`, `DerivedData/`, `reminders_export.json`, `*.export.csv`
 
 ## 2. TDD: Domain Models — ReminderItem и ReminderList
 
@@ -99,7 +99,7 @@
 - [x] 5.2 Создать `MockReminderExporter` — мок-экспортёр, проверяющий что метод `export` был вызван с ожидаемыми параметрами
 - [x] 5.3 Написать тест — парсинг `--format json` (`@Test("CLI парсит аргумент --format json")`)
 - [x] 5.4 Написать тест — парсинг `--format csv` (`@Test("CLI парсит аргумент --format csv")`)
-- [ ] 5.5 Написать тест — неверный формат вызывает ошибку (`@Test("CLI выдаёт ошибку при неверном --format")`)
+- [x] 5.5 Написать тест — неверный формат вызывает ошибку (`@Test("CLI выдаёт ошибку при неверном --format")`)
 - [x] 5.6 Написать тест — парсинг `--output` (`@Test("CLI парсит аргумент --output с пользовательским путём")`)
 - [x] 5.7 Написать тест — дефолтный `--output` (`@Test("CLI использует дефолтный путь для --output")`)
 - [x] 5.8 Написать тест — парсинг `--list` одиночный (`@Test("CLI фильтрует по одному списку")`)
@@ -128,12 +128,12 @@
 
 ## 6. Сборка, подпись и финальная проверка
 
-- [ ] 6.1 Убедиться, что `swift test` проходит все тесты (полный прогон без фильтров)
-- [ ] 6.2 Проверить `swift build -c release` без ошибок
-- [ ] 6.3 Создать entitlements с `com.apple.security.personal-information.reminders`
-- [ ] 6.4 Подписать бинарник ad-hoc: `codesign --sign - --entitlements <file> .build/release/export-reminders`
-- [ ] 6.5 Протестировать запуск: `swift run export-reminders --format json`
-- [ ] 6.6 Протестировать запуск: `swift run export-reminders --format csv --output ./out.csv`
-- [ ] 6.7 Протестировать фильтрацию: `swift run export-reminders --list "Покупки" --completed false`
-- [ ] 6.8 Проверить производительность на 1 000+ напоминаний (должно быть < 5 секунд)
-- [ ] 6.9 Написать README.md с инструкцией по сборке, настройке TCC и примерами использования
+- [x] 6.1 Убедиться, что `swift test` проходит все тесты (полный прогон без фильтров) — 43/43 ✅
+- [x] 6.2 Проверить `swift build -c release` без ошибок
+- [x] 6.3 Создать entitlements с `com.apple.security.personal-information.reminders`
+- [x] 6.4 Подписать бинарник ad-hoc: `codesign --sign - --entitlements entitlements.plist .build/release/ExportReminders`
+- [x] 6.5 Протестировать запуск: `.build/release/ExportReminders --format json` — 1071 напоминаний за 0.15с ✅
+- [x] 6.6 Протестировать запуск: `.build/release/ExportReminders --format csv --output /tmp/out.csv` ✅
+- [x] 6.7 Протестировать фильтрацию: `--list "Площадки" --completed false` — 11 невыполненных ✅
+- [x] 6.8 Проверить производительность: 1071 напоминаний за 0.15с (<< 5 секунд) ✅
+- [x] 6.9 Написать README.md с инструкцией по сборке, настройке TCC и примерами использования

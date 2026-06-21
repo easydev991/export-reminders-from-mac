@@ -27,7 +27,7 @@ enum TestDependencies {
 // MARK: - CLI
 
 @main
-struct ExportRemindersCLI: ParsableCommand {
+struct ExportRemindersCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "export-reminders",
         abstract: "Export reminders from Apple Reminders to a file."
