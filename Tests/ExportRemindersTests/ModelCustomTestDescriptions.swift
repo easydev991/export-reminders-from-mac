@@ -6,9 +6,3 @@ extension ReminderItem: CustomTestStringConvertible {
         "ReminderItem(id: \(id), title: \(title), list: \(listName))"
     }
 }
-
-extension ReminderList: CustomTestStringConvertible {
-    public var testDescription: String {
-        "ReminderList(id: \(id), title: \(title))"
-    }
-}

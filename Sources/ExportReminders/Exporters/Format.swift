@@ -1,7 +1,7 @@
 import ArgumentParser
 
 /// Поддерживаемые форматы экспорта.
-enum Format: String, ExpressibleByArgument, CaseIterable {
+enum Format: String, ExpressibleByArgument {
     case json
     case csv
 }

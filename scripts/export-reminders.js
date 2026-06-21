@@ -42,16 +42,5 @@ lists.forEach((list, listIndex) => {
 
 console.log("Всего обработано: " + totalProcessed + " напоминаний");
 
-// Запись в папку проекта
-const app = Application.currentApplication();
-app.includeStandardAdditions = true;
-
-const filePath = "./reminders_export.json";
-
-console.log("Запись файла: " + filePath);
-const file = app.openForAccess(Path(filePath), { writePermission: true });
-app.setEof(file, { to: 0 });
-app.write(JSON.stringify(allItems, null, 2), { to: file, as: "text" });
-app.closeAccess(file);
-
-console.log("Успешно экспортировано! Файл: " + filePath);
+// Вывод в stdout — для перенаправления в файл: osascript -l JavaScript export-reminders.js > reminders_export.json
+console.log(JSON.stringify(allItems, null, 2));

@@ -65,15 +65,3 @@ func mappingEKReminderMinimal() throws {
     #expect(item.url == nil)
     #expect(item.recurrenceRule == nil)
 }
-
-@Test("Маппинг EKCalendar → ReminderList")
-func mappingEKCalendarToReminderList() throws {
-    let store = EKEventStore()
-    let calendar = try #require(store.defaultCalendarForNewReminders())
-
-    let service = EventKitReminderService(store: store)
-    let list = service.mapToReminderList(calendar)
-
-    #expect(list.title == calendar.title)
-    #expect(list.color != nil)
-}

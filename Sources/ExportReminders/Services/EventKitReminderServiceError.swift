@@ -4,13 +4,10 @@ enum EventKitReminderServiceError: Error, Equatable {
     case accessDenied
     /// Ошибка при загрузке данных из EventKit.
     case fetchFailed(Error)
-    /// Неизвестная ошибка.
-    case unknown
 
     static func == (lhs: EventKitReminderServiceError, rhs: EventKitReminderServiceError) -> Bool {
         switch (lhs, rhs) {
         case (.accessDenied, .accessDenied): return true
-        case (.unknown, .unknown): return true
         case (.fetchFailed, .fetchFailed): return true
         default: return false
         }

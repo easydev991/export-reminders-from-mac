@@ -18,12 +18,6 @@ final class EventKitReminderService: @unchecked Sendable, ReminderServiceProtoco
         return ekReminders.map { mapToReminderItem($0) }
     }
 
-    func fetchAllLists() async throws -> [ReminderList] {
-        try await requestAccess()
-        let calendars = store.calendars(for: .reminder)
-        return calendars.map { mapToReminderList($0) }
-    }
-
     // MARK: - Private
 
     private func requestAccess() async throws {
@@ -41,7 +35,7 @@ final class EventKitReminderService: @unchecked Sendable, ReminderServiceProtoco
                     continuation.resume(returning: reminders)
                 } else {
                     let error = EventKitReminderServiceError.fetchFailed(
-                        EventKitReminderServiceError.unknown
+                        EventKitReminderServiceError.accessDenied
                     )
                     self.log("Ошибка при загрузке напоминаний: \(error)")
                     continuation.resume(throwing: error)
@@ -68,14 +62,6 @@ final class EventKitReminderService: @unchecked Sendable, ReminderServiceProtoco
             isCompleted: ekReminder.isCompleted,
             recurrenceRule: ekReminder.recurrenceRules?.first?.description,
             url: ekReminder.url?.absoluteString
-        )
-    }
-
-    func mapToReminderList(_ calendar: EKCalendar) -> ReminderList {
-        ReminderList(
-            id: calendar.calendarIdentifier,
-            title: calendar.title,
-            color: calendar.cgColor.flatMap { String(describing: $0) }
         )
     }
 }

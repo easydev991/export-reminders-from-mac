@@ -7,13 +7,13 @@
 - **Single executable target** `ExportReminders`, single test target `ExportRemindersTests`.
 - **`swift test --filter SuiteName`** — filters by test suite, not individual test name.
 
-## Formatting
+## Quality checks (before every commit)
 
 ```bash
-swiftformat .
+swiftformat .        # formatting (SwiftFormat 0.61+, /opt/homebrew/bin/swiftformat)
+periphery scan --targets ExportReminders   # detect dead code
 ```
-SwiftFormat 0.61+ (`/opt/homebrew/bin/swiftformat`).
-Run **before every commit**.
+Fix all warnings before committing — no exceptions.
 
 ## Structure
 
