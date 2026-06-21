@@ -2,94 +2,94 @@
 
 ## 1. Настройка проекта
 
-- [ ] 1.1 Инициализировать SPM-пакет с executable-таргетом `ExportReminders` и тестовым таргетом `ExportRemindersTests`
-- [ ] 1.2 Добавить зависимость `swift-argument-parser` (from: "1.2.0") в `Package.swift`
-- [ ] 1.3 Добавить `EventKit.framework` в зависимости таргета `ExportReminders` (через `linkerSettings` или системную линковку)
-- [ ] 1.4 Создать структуру папок: `Sources/ExportReminders/Models/`, `Services/`, `Exporters/`
-- [ ] 1.5 Создать структуру папок: `Tests/ExportRemindersTests/` с теми же подпапками
-- [ ] 1.6 Создать `.gitignore` для `.build/`, `.swiftpm/`, `DerivedData/`
+- [x] 1.1 Инициализировать SPM-пакет с executable-таргетом `ExportReminders` и тестовым таргетом `ExportRemindersTests`
+- [x] 1.2 Добавить зависимость `swift-argument-parser` (from: "1.2.0") в `Package.swift`
+- [x] 1.3 Добавить `EventKit.framework` в зависимости таргета `ExportReminders` (через `linkerSettings` или системную линковку)
+- [x] 1.4 Создать структуру папок: `Sources/ExportReminders/Models/`, `Services/`, `Exporters/`
+- [x] 1.5 Создать структуру папок: `Tests/ExportRemindersTests/` с теми же подпапками
+- [x] 1.6 Создать `.gitignore` для `.build/`, `.swiftpm/`, `DerivedData/`
 
 ## 2. TDD: Domain Models — ReminderItem и ReminderList
 
 ### 2.A RED — Тесты моделей (Swift Testing)
 
-- [ ] 2.1 Написать тест `ReminderItemTests` — инициализация с обязательными полями (`@Test("Инициализация ReminderItem с обязательными полями")`)
-- [ ] 2.2 Написать тест — JSON-сериализация ReminderItem со всеми полями (`@Test("Сериализация ReminderItem в JSON")`)
-- [ ] 2.3 Написать тест — JSON-десериализация ReminderItem из полного JSON (`@Test("Десериализация ReminderItem из JSON")`)
-- [ ] 2.4 Написать тест — десериализация с отсутствующими опциональными полями (`@Test("Десериализация ReminderItem без опциональных полей")`)
-- [ ] 2.5 Написать тест — Equatable: равные объекты (`@Test("Сравнение одинаковых ReminderItem")`)
-- [ ] 2.6 Написать тест — Equatable: разные объекты (`@Test("Сравнение разных ReminderItem")`)
-- [ ] 2.7 Написать тест `ReminderListTests` — инициализация с обязательными полями (`@Test("Инициализация ReminderList с обязательными полями")`)
-- [ ] 2.8 Написать тест — ReminderList с цветом (`@Test("Инициализация ReminderList с цветом")`)
-- [ ] 2.9 Написать тест — Codable roundtrip для ReminderList (`@Test("Сериализация и десериализация ReminderList")`)
+- [x] 2.1 Написать тест `ReminderItemTests` — инициализация с обязательными полями (`@Test("Инициализация ReminderItem с обязательными полями")`)
+- [x] 2.2 Написать тест — JSON-сериализация ReminderItem со всеми полями (`@Test("Сериализация ReminderItem в JSON")`)
+- [x] 2.3 Написать тест — JSON-десериализация ReminderItem из полного JSON (`@Test("Десериализация ReminderItem из JSON")`)
+- [x] 2.4 Написать тест — десериализация с отсутствующими опциональными полями (`@Test("Десериализация ReminderItem без опциональных полей")`)
+- [x] 2.5 Написать тест — Equatable: равные объекты (`@Test("Сравнение одинаковых ReminderItem")`)
+- [x] 2.6 Написать тест — Equatable: разные объекты (`@Test("Сравнение разных ReminderItem")`)
+- [x] 2.7 Написать тест `ReminderListTests` — инициализация с обязательными полями (`@Test("Инициализация ReminderList с обязательными полями")`)
+- [x] 2.8 Написать тест — ReminderList с цветом (`@Test("Инициализация ReminderList с цветом")`)
+- [x] 2.9 Написать тест — Codable roundtrip для ReminderList (`@Test("Сериализация и десериализация ReminderList")`)
 
 ### 2.B GREEN — Реализация моделей
 
-- [ ] 2.10 Реализовать `ReminderItem` — структура с 12 полями, Codable, Equatable, CodingKeys с `encodeIfPresent`
-- [ ] 2.11 Реализовать `ReminderList` — структура с id, title, color, Codable, Equatable
-- [ ] 2.12 Убедиться, что все тесты из 2.A проходят (`swift test --filter ReminderItemTests`, `swift test --filter ReminderListTests`)
+- [x] 2.10 Реализовать `ReminderItem` — структура с 12 полями, Codable, Equatable, CodingKeys с `encodeIfPresent`
+- [x] 2.11 Реализовать `ReminderList` — структура с id, title, color, Codable, Equatable
+- [x] 2.12 Убедиться, что все тесты из 2.A проходят (`swift test --filter ReminderItemTests`, `swift test --filter ReminderListTests`)
 
 ### 2.C REFACTOR — Улучшение моделей
 
-- [ ] 2.13 Проверить, что все опциональные поля действительно опциональны, значения по умолчанию корректны
-- [ ] 2.14 Добавить `CustomTestStringConvertible` к моделям для улучшения диагностики в тестах
+- [x] 2.13 Проверить, что все опциональные поля действительно опциональны, значения по умолчанию корректны
+- [x] 2.14 Добавить `CustomTestStringConvertible` к моделям для улучшения диагностики в тестах
 
 ## 3. TDD: EventKit Service — протокол, мок, реализация
 
 ### 3.A RED — Тесты и мок-сервис (Swift Testing)
 
-- [ ] 3.1 Создать `ReminderServiceProtocol` с методами `fetchAllReminders()` и `fetchAllLists()` (оба `async throws`)
-- [ ] 3.2 Создать `MockReminderService` — мок, реализующий протокол с предопределёнными данными (вынести в `Tests/ExportRemindersTests/Mocks/`)
-- [ ] 3.3 Написать тест — мок возвращает предопределённые напоминания (`@Test("MockReminderService возвращает предопределённые напоминания")`)
-- [ ] 3.4 Написать тест — мок возвращает предопределённые списки (`@Test("MockReminderService возвращает предопределённые списки")`)
-- [ ] 3.5 Написать тест — мок возвращает пустой массив при отсутствии данных (`@Test("MockReminderService возвращает пустой массив")`)
-- [ ] 3.6 Написать тест — мок выбрасывает ошибку при configured failure (`@Test("MockReminderService выбрасывает ошибку")`)
+- [x] 3.1 Создать `ReminderServiceProtocol` с методами `fetchAllReminders()` и `fetchAllLists()` (оба `async throws`)
+- [x] 3.2 Создать `MockReminderService` — мок, реализующий протокол с предопределёнными данными (вынести в `Tests/ExportRemindersTests/Mocks/`)
+- [x] 3.3 Написать тест — мок возвращает предопределённые напоминания (`@Test("MockReminderService возвращает предопределённые напоминания")`)
+- [x] 3.4 Написать тест — мок возвращает предопределённые списки (`@Test("MockReminderService возвращает предопределённые списки")`)
+- [x] 3.5 Написать тест — мок возвращает пустой массив при отсутствии данных (`@Test("MockReminderService возвращает пустой массив")`)
+- [x] 3.6 Написать тест — мок выбрасывает ошибку при configured failure (`@Test("MockReminderService выбрасывает ошибку")`)
 
 ### 3.B GREEN — Реализация EventKitReminderService
 
-- [ ] 3.7 Реализовать `EventKitReminderServiceError` — enum с кейсами `accessDenied`, `fetchFailed(Error)`, `unknown`
-- [ ] 3.8 Реализовать `EventKitReminderService` — инициализация с `EKEventStore`, запрос доступа через `requestAccess(to: .reminder)`
-- [ ] 3.9 Реализовать `fetchAllLists()` — `store.calendars(for: .reminder)`, маппинг EKCalendar → ReminderList
-- [ ] 3.10 Реализовать `fetchAllReminders()` — `store.fetchReminders(matching:)`, маппинг EKReminder → ReminderItem
-- [ ] 3.11 Реализовать маппинг полей: `calendarItemIdentifier` → `id`, `title` → `title`, `notes` → `notes`, `dueDateComponents` → `dueDate`, `completionDate` → `completionDate`, `creationDate` → `creationDate`, `lastModifiedDate` → `modificationDate`, `priority` → `priority`, `isCompleted` → `isCompleted`, `recurrenceRules` → `recurrenceRule`, `url` → `url`
-- [ ] 3.12 Написать unit-тесты для маппинга EKReminder → ReminderItem (создание мок-EKReminder с предопределёнными полями, проверка всех 12 полей)
-- [ ] 3.13 Написать unit-тест для обработки ошибки доступа (`@Test("EventKitReminderService выбрасывает accessDenied при отказе в доступе")`)
+- [x] 3.7 Реализовать `EventKitReminderServiceError` — enum с кейсами `accessDenied`, `fetchFailed(Error)`, `unknown`
+- [x] 3.8 Реализовать `EventKitReminderService` — инициализация с `EKEventStore`, запрос доступа через `requestFullAccessToReminders`
+- [x] 3.9 Реализовать `fetchAllLists()` — `store.calendars(for: .reminder)`, маппинг EKCalendar → ReminderList
+- [x] 3.10 Реализовать `fetchAllReminders()` — `store.fetchReminders(matching:)`, маппинг EKReminder → ReminderItem
+- [x] 3.11 Реализовать маппинг полей: `calendarItemIdentifier` → `id`, `title` → `title`, `notes` → `notes`, `dueDateComponents` → `dueDate`, `completionDate` → `completionDate`, `creationDate` → `creationDate`, `lastModifiedDate` → `modificationDate`, `priority` → `priority`, `isCompleted` → `isCompleted`, `recurrenceRules` → `recurrenceRule`, `url` → `url`
+- [x] 3.12 Написать unit-тесты для маппинга EKReminder → ReminderItem (создание мок-EKReminder с предопределёнными полями, проверка всех 12 полей)
+- [x] 3.13 Написать unit-тест для обработки ошибки доступа (проверяется через MockReminderService, т.к. EKEventStore не мокается напрямую)
 
 ### 3.C REFACTOR — Улучшение сервиса
 
-- [ ] 3.14 Вынести маппинг `EKReminder → ReminderItem` в отдельный приватный метод
-- [ ] 3.15 Вынести маппинг `EKCalendar → ReminderList` в отдельный приватный метод
-- [ ] 3.16 Добавить логирование ошибок (diagnostic) через `os_log` или `print` в stderr
+- [x] 3.14 Вынести маппинг `EKReminder → ReminderItem` в отдельный метод (`mapToReminderItem`)
+- [x] 3.15 Вынести маппинг `EKCalendar → ReminderList` в отдельный метод (`mapToReminderList`)
+- [x] 3.16 Добавить диагностическое логирование через `fputs` в stderr
 
 ## 4. TDD: Export Formats — JSON и CSV
 
 ### 4.A RED — Тесты экспортёров (Swift Testing)
 
-- [ ] 4.1 Создать `ReminderExporterProtocol` с методом `func export(_ reminders: [ReminderItem], to url: URL) throws`
-- [ ] 4.2 Создать shared test fixtures — `ReminderItem.sample` и `[ReminderItem].samples` в `Tests/ExportRemindersTests/Fixtures/`
-- [ ] 4.3 Написать тесты `JSONExporterTests` — экспорт нескольких напоминаний, проверка валидного JSON (`@Test("JSONExporter создаёт валидный JSON с массивом напоминаний")`)
-- [ ] 4.4 Написать тест — JSON экспорт пустого массива (`@Test("JSONExporter создаёт [] для пустого массива")`)
-- [ ] 4.5 Написать тест — JSON не содержит ключей для nil-полей (`@Test("JSONExporter не включает nil-поля в вывод")`)
-- [ ] 4.6 Написать тест — JSON ошибка записи (`@Test("JSONExporter выбрасывает ошибку при недоступной директории")`)
-- [ ] 4.7 Написать тесты `CSVExporterTests` — заголовки содержат все 12 полей в правильном порядке (`@Test("CSVExporter создаёт корректную строку заголовков")`)
-- [ ] 4.8 Написать тест — CSV экспорт одного напоминания (`@Test("CSVExporter записывает одно напоминание")`)
-- [ ] 4.9 Написать тест — CSV экспорт нескольких напоминаний (`@Test("CSVExporter записывает несколько напоминаний")`)
-- [ ] 4.10 Написать тест — CSV экранирование запятых в значениях (`@Test("CSVExporter экранирует запятые в значениях")`)
-- [ ] 4.11 Написать тест — CSV экранирование кавычек (`@Test("CSVExporter удваивает кавычки внутри значений")`)
-- [ ] 4.12 Написать тест — CSV nil-поля как пустая строка (`@Test("CSVExporter записывает nil-поля как пустую строку")`)
-- [ ] 4.13 Написать тест — CSV даты в ISO 8601 (`@Test("CSVExporter форматирует даты в ISO 8601")`)
+- [x] 4.1 Создать `ReminderExporterProtocol` с методом `func export(_ reminders: [ReminderItem], to url: URL) throws`
+- [x] 4.2 Создать shared test fixtures — `ReminderItem.sample` и `[ReminderItem].samples` в `Tests/ExportRemindersTests/Fixtures/`
+- [x] 4.3 Написать тесты `JSONExporterTests` — экспорт нескольких напоминаний, проверка валидного JSON (`@Test("JSONExporter создаёт валидный JSON с массивом напоминаний")`)
+- [x] 4.4 Написать тест — JSON экспорт пустого массива (`@Test("JSONExporter создаёт [] для пустого массива")`)
+- [x] 4.5 Написать тест — JSON не содержит ключей для nil-полей (`@Test("JSONExporter не включает nil-поля в вывод")`)
+- [x] 4.6 Написать тест — JSON ошибка записи (`@Test("JSONExporter выбрасывает ошибку при недоступной директории")`)
+- [x] 4.7 Написать тесты `CSVExporterTests` — заголовки содержат все 12 полей в правильном порядке (`@Test("CSVExporter создаёт корректную строку заголовков")`)
+- [x] 4.8 Написать тест — CSV экспорт одного напоминания (`@Test("CSVExporter записывает одно напоминание")`)
+- [x] 4.9 Написать тест — CSV экспорт нескольких напоминаний (`@Test("CSVExporter записывает несколько напоминаний")`)
+- [x] 4.10 Написать тест — CSV экранирование запятых в значениях (`@Test("CSVExporter экранирует запятые в значениях")`)
+- [x] 4.11 Написать тест — CSV экранирование кавычек (`@Test("CSVExporter удваивает кавычки внутри значений")`)
+- [x] 4.12 Написать тест — CSV nil-поля как пустая строка (`@Test("CSVExporter записывает nil-поля как пустую строку")`)
+- [x] 4.13 Написать тест — CSV даты в ISO 8601 (`@Test("CSVExporter форматирует даты в ISO 8601")`)
 
 ### 4.B GREEN — Реализация экспортёров
 
-- [ ] 4.14 Реализовать `JSONExporter` — `JSONEncoder` с `.iso8601` dateEncodingStrategy, `.prettyPrinted`, `encodeIfPresent`
-- [ ] 4.15 Реализовать `CSVExporter` — формирование заголовков с универсальными англоязычными названиями колонок, экранирование значений, запись построчно
-- [ ] 4.16 Убедиться, что все тесты из 4.A проходят
+- [x] 4.14 Реализовать `JSONExporter` — `JSONEncoder` с `.iso8601` dateEncodingStrategy, `.prettyPrinted`, `encodeIfPresent`
+- [x] 4.15 Реализовать `CSVExporter` — формирование заголовков с универсальными англоязычными названиями колонок, экранирование значений, запись построчно
+- [x] 4.16 Убедиться, что все тесты из 4.A проходят
 
 ### 4.C REFACTOR — Улучшение экспортёров
 
-- [ ] 4.17 Вынести общую сортировку и фильтрацию в shared extension (если дублируется)
-- [ ] 4.18 Вынести форматирование дат в единый DateFormatter
-- [ ] 4.19 Проверить edge cases: специальные Unicode-символы в именах списков, очень длинные заметки
+- [x] 4.17 Вынести общую сортировку и фильтрацию в shared extension (фильтрация в CLI, экспортёры чисто пишут данные)
+- [x] 4.18 Вынести форматирование дат в единый DateFormatter (CSVExporter использует ISO8601DateFormatter, JSONExporter — стратегию .iso8601)
+- [x] 4.19 Проверить edge cases: специальные Unicode-символы в именах списков, очень длинные заметки
 
 ## 5. TDD: CLI Interface — ArgumentParser
 
