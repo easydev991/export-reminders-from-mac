@@ -2,12 +2,89 @@
 import Foundation
 import Testing
 
+// MARK: - Shared helper
+
+func makeTempURL(extension ext: String) -> URL {
+    FileManager.default.temporaryDirectory
+        .appendingPathComponent(UUID().uuidString)
+        .appendingPathExtension(ext)
+}
+
+// MARK: - JSONExporter
+
+@Test("JSONExporter создаёт валидный JSON с массивом напоминаний")
+func jsonExporterMultipleReminders() throws {
+    let exporter = JSONExporter()
+    let url = makeTempURL(extension: "json")
+
+    try exporter.export(ReminderItem.samples, to: url)
+    let data = try Data(contentsOf: url)
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    let decoded = try decoder.decode([ReminderItem].self, from: data)
+
+    #expect(decoded.count == 3)
+    #expect(decoded[0].id == "sample-1")
+    #expect(decoded[1].id == "sample-2")
+    #expect(decoded[2].id == "sample-3")
+
+    try FileManager.default.removeItem(at: url)
+}
+
+@Test("JSONExporter создаёт [] для пустого массива")
+func jsonExporterEmptyArray() throws {
+    let exporter = JSONExporter()
+    let url = makeTempURL(extension: "json")
+
+    try exporter.export([], to: url)
+    let data = try Data(contentsOf: url)
+    let content = try #require(String(data: data, encoding: .utf8))
+
+    // Pretty-printed empty array is "[\n\n]" with newlines
+    #expect(content.contains("["))
+    #expect(content.contains("]"))
+
+    try FileManager.default.removeItem(at: url)
+}
+
+@Test("JSONExporter не включает nil-поля в вывод")
+func jsonExporterOmitsNilFields() throws {
+    let exporter = JSONExporter()
+    let url = makeTempURL(extension: "json")
+
+    let reminder = ReminderItem(
+        id: "minimal",
+        listName: "Тест",
+        title: "Минимальное",
+        isCompleted: false
+    )
+    try exporter.export([reminder], to: url)
+    let data = try Data(contentsOf: url)
+    let content = try #require(String(data: data, encoding: .utf8))
+
+    #expect(!content.contains("\"notes\""))
+    #expect(!content.contains("\"dueDate\""))
+    #expect(!content.contains("\"url\""))
+
+    try FileManager.default.removeItem(at: url)
+}
+
+@Test("JSONExporter выбрасывает ошибку при недоступной директории")
+func jsonExporterWriteError() {
+    let exporter = JSONExporter()
+    let url = URL(fileURLWithPath: "/nonexistent/path/output.json")
+
+    #expect(throws: (any Error).self) {
+        try exporter.export(ReminderItem.samples, to: url)
+    }
+}
+
+// MARK: - CSVExporter
+
 @Test("CSVExporter создаёт корректную строку заголовков")
 func csvExporterHeaders() throws {
     let exporter = CSVExporter()
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent(UUID().uuidString)
-        .appendingPathExtension("csv")
+    let url = makeTempURL(extension: "csv")
 
     try exporter.export([], to: url)
     let data = try Data(contentsOf: url)
@@ -23,9 +100,7 @@ func csvExporterHeaders() throws {
 @Test("CSVExporter записывает одно напоминание")
 func csvExporterSingleReminder() throws {
     let exporter = CSVExporter()
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent(UUID().uuidString)
-        .appendingPathExtension("csv")
+    let url = makeTempURL(extension: "csv")
 
     try exporter.export([ReminderItem.sample], to: url)
     let data = try Data(contentsOf: url)
@@ -40,9 +115,7 @@ func csvExporterSingleReminder() throws {
 @Test("CSVExporter записывает несколько напоминаний")
 func csvExporterMultipleReminders() throws {
     let exporter = CSVExporter()
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent(UUID().uuidString)
-        .appendingPathExtension("csv")
+    let url = makeTempURL(extension: "csv")
 
     try exporter.export(ReminderItem.samples, to: url)
     let data = try Data(contentsOf: url)
@@ -57,15 +130,12 @@ func csvExporterMultipleReminders() throws {
 @Test("CSVExporter экранирует запятые в значениях")
 func csvExporterEscapesCommas() throws {
     let exporter = CSVExporter()
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent(UUID().uuidString)
-        .appendingPathExtension("csv")
+    let url = makeTempURL(extension: "csv")
 
     let reminder = ReminderItem(
         id: "1",
         listName: "Покупки",
         title: "Купить хлеб, молоко",
-        priority: 0,
         isCompleted: false
     )
     try exporter.export([reminder], to: url)
@@ -80,22 +150,21 @@ func csvExporterEscapesCommas() throws {
 @Test("CSVExporter удваивает кавычки внутри значений")
 func csvExporterEscapesQuotes() throws {
     let exporter = CSVExporter()
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent(UUID().uuidString)
-        .appendingPathExtension("csv")
+    let url = makeTempURL(extension: "csv")
 
     let reminder = ReminderItem(
         id: "1",
         listName: "Работа",
         title: "Сказать \"Привет\" коллегам",
-        priority: 0,
         isCompleted: false
     )
     try exporter.export([reminder], to: url)
     let data = try Data(contentsOf: url)
     let content = try #require(String(data: data, encoding: .utf8))
 
-    #expect(content.contains("\"\"Привет\"\""))
+    let title = reminder.title
+    #expect(content.contains(title) == false)
+    #expect(content.contains("\"Сказать \"\"Привет\"\" коллегам\""))
 
     try FileManager.default.removeItem(at: url)
 }
@@ -103,15 +172,12 @@ func csvExporterEscapesQuotes() throws {
 @Test("CSVExporter записывает nil-поля как пустую строку")
 func csvExporterNilFields() throws {
     let exporter = CSVExporter()
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent(UUID().uuidString)
-        .appendingPathExtension("csv")
+    let url = makeTempURL(extension: "csv")
 
     let reminder = ReminderItem(
         id: "1",
         listName: "Тест",
         title: "Без заметки и даты",
-        priority: 0,
         isCompleted: false
     )
     try exporter.export([reminder], to: url)
@@ -132,16 +198,13 @@ func csvExporterNilFields() throws {
 @Test("CSVExporter экранирует переводы строк в значениях")
 func csvExporterEscapesNewlines() throws {
     let exporter = CSVExporter()
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent(UUID().uuidString)
-        .appendingPathExtension("csv")
+    let url = makeTempURL(extension: "csv")
 
     let reminder = ReminderItem(
         id: "1",
         listName: "Заметки",
         title: "Список дел",
         notes: "Купить молоко\nКупить хлеб\nПозвонить врачу",
-        priority: 0,
         isCompleted: false
     )
     try exporter.export([reminder], to: url)
@@ -156,9 +219,7 @@ func csvExporterEscapesNewlines() throws {
 @Test("CSVExporter форматирует даты в ISO 8601")
 func csvExporterDateFormat() throws {
     let exporter = CSVExporter()
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent(UUID().uuidString)
-        .appendingPathExtension("csv")
+    let url = makeTempURL(extension: "csv")
 
     try exporter.export([ReminderItem.sample], to: url)
     let data = try Data(contentsOf: url)

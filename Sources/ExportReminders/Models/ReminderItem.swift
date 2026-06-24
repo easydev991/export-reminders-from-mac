@@ -18,7 +18,6 @@ struct ReminderItem: Codable, Equatable {
     let isCompleted: Bool
     let recurrenceRule: String?
     let url: String?
-
     init(
         id: String,
         listName: String,
@@ -45,27 +44,5 @@ struct ReminderItem: Codable, Equatable {
         self.isCompleted = isCompleted
         self.recurrenceRule = recurrenceRule
         self.url = url
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case id, listName, title, notes, dueDate, completionDate
-        case creationDate, modificationDate, priority, isCompleted
-        case recurrenceRule, url
-    }
-
-    func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
-        try container.encode(listName, forKey: .listName)
-        try container.encode(title, forKey: .title)
-        try container.encodeIfPresent(notes, forKey: .notes)
-        try container.encodeIfPresent(dueDate, forKey: .dueDate)
-        try container.encodeIfPresent(completionDate, forKey: .completionDate)
-        try container.encodeIfPresent(creationDate, forKey: .creationDate)
-        try container.encodeIfPresent(modificationDate, forKey: .modificationDate)
-        try container.encode(priority, forKey: .priority)
-        try container.encode(isCompleted, forKey: .isCompleted)
-        try container.encodeIfPresent(recurrenceRule, forKey: .recurrenceRule)
-        try container.encodeIfPresent(url, forKey: .url)
     }
 }

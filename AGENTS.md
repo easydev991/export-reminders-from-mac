@@ -19,7 +19,6 @@ Fix all warnings before committing — no exceptions.
 
 - `Sources/ExportReminders/Models/`, `Services/`, `Exporters/` + `ExportReminders.swift` (entrypoint)
 - `Tests/ExportRemindersTests/` mirrors source structure
-- `scripts/` — JXA/AppleScript fallbacks. **Do not delete.**
 - `README.md` — архитектура, поля модели, примеры использования
 - `openspec/specs/` — main specifications (domain-models, eventkit-integration, json-export, csv-export, cli-interface)
 - `openspec/changes/archive/` — archived changes (spec-driven)

@@ -1,31 +1,6 @@
 import ArgumentParser
 import Foundation
 
-// MARK: - Stderr TextOutputStream
-
-struct StderrOutputStream: TextOutputStream {
-    let handle: UnsafeMutablePointer<FILE>
-
-    init(_ handle: UnsafeMutablePointer<FILE>) {
-        self.handle = handle
-    }
-
-    func write(_ string: String) {
-        fputs(string, handle)
-    }
-}
-
-var standardError = StderrOutputStream(Darwin.stderr)
-
-// MARK: - Test Dependencies
-
-enum TestDependencies {
-    static var service: ReminderServiceProtocol?
-    static var exporter: ReminderExporterProtocol?
-}
-
-// MARK: - CLI
-
 @main
 struct ExportRemindersCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -46,20 +21,26 @@ struct ExportRemindersCLI: AsyncParsableCommand {
     var completed: Bool?
 
     mutating func run() async throws {
-        let activeService = TestDependencies.service ?? EventKitReminderService()
-        let activeExporter = TestDependencies.exporter ?? makeExporter(for: format)
+        try await run(
+            service: EventKitReminderService(),
+            exporter: makeExporter(for: format)
+        )
+    }
 
+    // MARK: - Internal
+
+    func run(service: ReminderServiceProtocol, exporter: ReminderExporterProtocol) async throws {
         do {
-            let allReminders = try await activeService.fetchAllReminders()
+            let allReminders = try await service.fetchAllReminders()
             let filtered = applyFilters(to: allReminders)
             let url = URL(fileURLWithPath: output)
-            try activeExporter.export(filtered, to: url)
+            try exporter.export(filtered, to: url)
             print("Экспортировано \(filtered.count) напоминаний в \(output)")
         } catch EventKitReminderServiceError.accessDenied {
-            print("Ошибка: доступ к напоминаниям запрещён.", to: &standardError)
+            fputs("Ошибка: доступ к напоминаниям запрещён.\n", stderr)
             throw ExitCode(1)
         } catch {
-            print("Ошибка: \(error.localizedDescription)", to: &standardError)
+            fputs("Ошибка: \(error.localizedDescription)\n", stderr)
             throw ExitCode(2)
         }
     }
@@ -76,19 +57,13 @@ struct ExportRemindersCLI: AsyncParsableCommand {
     }
 
     private func applyFilters(to reminders: [ReminderItem]) -> [ReminderItem] {
-        var result = reminders
-
-        if !list.isEmpty {
-            let lowercasedLists = list.map { $0.lowercased() }
-            result = result.filter { reminder in
-                lowercasedLists.contains(reminder.listName.lowercased())
+        let lowercasedLists = list.map { $0.lowercased() }
+        return reminders
+            .filter { reminder in
+                list.isEmpty || lowercasedLists.contains(reminder.listName.lowercased())
             }
-        }
-
-        if let completed {
-            result = result.filter { $0.isCompleted == completed }
-        }
-
-        return result
+            .filter { reminder in
+                completed == nil || reminder.isCompleted == completed
+            }
     }
 }

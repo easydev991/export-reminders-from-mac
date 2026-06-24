@@ -39,10 +39,10 @@ struct CSVExporter: ReminderExporterProtocol {
             item.listName,
             item.title,
             item.notes ?? "",
-            dateOrNil(item.dueDate),
-            dateOrNil(item.completionDate),
-            dateOrNil(item.creationDate),
-            dateOrNil(item.modificationDate),
+            item.dueDate.map { dateFormatter.string(from: $0) } ?? "",
+            item.completionDate.map { dateFormatter.string(from: $0) } ?? "",
+            item.creationDate.map { dateFormatter.string(from: $0) } ?? "",
+            item.modificationDate.map { dateFormatter.string(from: $0) } ?? "",
             String(item.priority),
             String(item.isCompleted),
             item.recurrenceRule ?? "",
@@ -51,19 +51,11 @@ struct CSVExporter: ReminderExporterProtocol {
         return fields.map(escapeField).joined(separator: ",")
     }
 
-    private func dateOrNil(_ date: Date?) -> String {
-        date.map { formatDate($0) } ?? ""
-    }
-
     private func escapeField(_ value: String) -> String {
         if value.contains(",") || value.contains("\"") || value.contains("\n") {
             let escaped = value.replacingOccurrences(of: "\"", with: "\"\"")
             return "\"\(escaped)\""
         }
         return value
-    }
-
-    private func formatDate(_ date: Date) -> String {
-        dateFormatter.string(from: date)
     }
 }
