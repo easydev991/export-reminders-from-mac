@@ -9,7 +9,7 @@ Swift CLI-инструмент для экспорта напоминаний и
 ```bash
 # Экспорт напоминаний в JSON (одна команда)
 make export
-# → reminders.json в корне проекта
+# → reminders_export.json в корне проекта
 
 # Экспорт в CSV
 make export ARGS="--format csv --output ./reminders.csv"
@@ -113,7 +113,7 @@ ISO 8601 даты, без экранирования слэшей, ключи д
 
 ```csv
 id,listName,title,notes,dueDate,completionDate,creationDate,modificationDate,priority,isCompleted,recurrenceRule,url
-x-apple-reminder:...,Покупки,Молоко,2.5%,,,,,2025-12-01T10:00:00Z,0,false,,
+x-apple-reminder:...,Покупки,Молоко,2.5%,,,2025-12-01T10:00:00Z,2025-12-01T12:00:00Z,0,false,,
 ```
 
 ### Tasks.org
@@ -125,7 +125,22 @@ Backup-JSON для импорта в Android-приложение Tasks.org. Д�
   "version": 150704,
   "timestamp": 1712345678901,
   "data": {
-    "tasks": [{ "task": { "title": "Молоко", ... } }],
+    "tasks": [
+      {
+        "task": {
+          "title": "Молоко",
+          "remoteId": "x-apple-reminder:...",
+          "notes": null,
+          "dueDate": null,
+          "creationDate": null,
+          "modificationDate": null,
+          "completionDate": null
+        },
+        "caldavTasks": [
+          { "calendar": "...", "remoteId": "x-apple-reminder:..." }
+        ]
+      }
+    ],
     "caldavAccounts": [{ "uuid": "...", "name": "export-reminders" }],
     "caldavCalendars": [{ "uuid": "...", "name": "Покупки" }]
   }
@@ -156,7 +171,6 @@ Sources/ExportReminders/
 ├── ExportReminders.swift            # CLI (AsyncParsableCommand)
 ├── Models/
 │   ├── ReminderItem.swift           # Модель напоминания
-│   ├── ReminderList.swift           # Модель списка
 │   └── TasksOrg/                    # Модели Tasks.org
 ├── Services/
 │   ├── ReminderServiceProtocol.swift   # Протокол сервиса
@@ -185,7 +199,3 @@ swift test --filter JSONExporterTests
 swift test --filter CSVExporterTests
 swift test --filter TasksOrgConverterTests
 ```
-
-## Лицензия
-
-MIT
