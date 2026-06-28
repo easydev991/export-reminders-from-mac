@@ -7,5 +7,5 @@
 DerivedData/
 
 # Экспортированные файлы напоминаний
-reminders_export.json
+reminders_export*
 *.export.csv

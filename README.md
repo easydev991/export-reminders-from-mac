@@ -1,6 +1,6 @@
 # export-reminders-from-mac
 
-Swift CLI-инструмент для экспорта напоминаний из Apple Reminders (iCloud) на macOS в JSON и CSV.
+Swift CLI-инструмент для экспорта напоминаний из Apple Reminders (iCloud) на macOS в JSON, CSV и Tasks.org.
 
 Использует **EventKit** напрямую — без межпроцессных вызовов к приложению «Напоминания». Выгрузка 1000+ напоминаний за < 1 секунды.
 
@@ -13,6 +13,9 @@ make export
 
 # Экспорт в CSV
 make export ARGS="--format csv --output ./reminders.csv"
+
+# Экспорт в Tasks.org (для импорта в Android-приложение Tasks.org)
+make export ARGS="--format tasks-org --output ./reminders_export_tasks_org.json"
 
 # Проверка и установка инструментов разработки
 make setup
@@ -67,6 +70,9 @@ swift run ExportReminders --format json --output ./reminders.json
 # CSV
 swift run ExportReminders --format csv --output ./reminders.csv
 
+# Tasks.org (Android-приложение Tasks.org)
+swift run ExportReminders --format tasks-org --output ./reminders_export_tasks_org.json
+
 # Фильтрация по списку (регистронезависимо)
 swift run ExportReminders --list "Покупки" --list "Работа"
 
@@ -110,6 +116,22 @@ id,listName,title,notes,dueDate,completionDate,creationDate,modificationDate,pri
 x-apple-reminder:...,Покупки,Молоко,2.5%,,,,,2025-12-01T10:00:00Z,0,false,,
 ```
 
+### Tasks.org
+
+Backup-JSON для импорта в Android-приложение Tasks.org. Даты — Unix timestamp в миллисекундах, приоритеты перекодированы (Apple: 0/1/5/9 → Tasks.org: 3/0/1/2), списки Apple Reminders мапятся в Caldav-календари. Поле `url` добавляется в конец `notes`.
+
+```json
+{
+  "version": 157,
+  "timestamp": 1712345678901,
+  "data": {
+    "tasks": [{ "task": { "title": "Молоко", "importance": 3, ... } }],
+    "caldavAccounts": [{ "uuid": "...", "name": "export-reminders" }],
+    "caldavCalendars": [{ "uuid": "...", "name": "Покупки" }]
+  }
+}
+```
+
 ## Поля экспорта (ReminderItem)
 
 | Поле             | Тип        | Описание                     |
@@ -134,16 +156,19 @@ Sources/ExportReminders/
 ├── ExportReminders.swift            # CLI (AsyncParsableCommand)
 ├── Models/
 │   ├── ReminderItem.swift           # Модель напоминания
-│   └── ReminderList.swift           # Модель списка
+│   ├── ReminderList.swift           # Модель списка
+│   └── TasksOrg/                    # Модели Tasks.org
 ├── Services/
 │   ├── ReminderServiceProtocol.swift   # Протокол сервиса
 │   ├── EventKitReminderService.swift   # Реализация через EventKit
 │   └── EventKitReminderServiceError.swift  # Ошибки
-└── Exporters/
-    ├── ReminderExporterProtocol.swift  # Протокол экспортёра
-    ├── Format.swift                    # Enum форматов
-    ├── JSONExporter.swift              # Экспорт в JSON
-    └── CSVExporter.swift               # Экспорт в CSV
+├── Exporters/
+│   ├── ReminderExporterProtocol.swift  # Протокол экспортёра
+│   ├── Format.swift                    # Enum форматов
+│   ├── JSONExporter.swift              # Экспорт в JSON
+│   └── CSVExporter.swift               # Экспорт в CSV
+└── Converters/
+    └── TasksOrgConverter.swift         # Конвертер [ReminderItem] → Tasks.org JSON
 ```
 
 ## Тестирование
@@ -158,6 +183,7 @@ swift test --filter CLITestSuite
 # Только тесты экспортёров
 swift test --filter JSONExporterTests
 swift test --filter CSVExporterTests
+swift test --filter TasksOrgConverterTests
 ```
 
 ## Лицензия

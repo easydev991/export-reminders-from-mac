@@ -56,7 +56,8 @@ setup: ## Check and install development tools (Homebrew, SwiftFormat, Periphery)
 
 help: ## Show this help
 	@echo "Available targets:"
-	@echo "  make export       Build, sign, and export reminders to JSON"
-	@echo "                   ARGS=\"...\"  Custom CLI arguments"
-	@echo "  make setup        Check and install development tools"
-	@echo "  make help         Show this help"
+	@echo "  make export                                  Build, sign, and export reminders to JSON"
+	@echo "  make export ARGS=\"--format csv --output ...\" Export to CSV"
+	@echo "  make export ARGS=\"--format tasks-org --output ...\" Export to Tasks.org"
+	@echo "  make setup                                   Check and install development tools"
+	@echo "  make help                                    Show this help"

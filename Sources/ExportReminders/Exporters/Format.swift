@@ -4,4 +4,5 @@ import ArgumentParser
 enum Format: String, ExpressibleByArgument {
     case json
     case csv
+    case tasksOrg = "tasks-org"
 }

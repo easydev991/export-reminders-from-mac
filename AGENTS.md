@@ -17,10 +17,10 @@ Fix all warnings before committing — no exceptions.
 
 ## Structure
 
-- `Sources/ExportReminders/Models/`, `Services/`, `Exporters/` + `ExportReminders.swift` (entrypoint)
+- `Sources/ExportReminders/Models/`, `Services/`, `Exporters/`, `Converters/` + `ExportReminders.swift` (entrypoint)
 - `Tests/ExportRemindersTests/` mirrors source structure
 - `README.md` — архитектура, поля модели, примеры использования
-- `openspec/specs/` — main specifications (domain-models, eventkit-integration, json-export, csv-export, cli-interface)
+- `openspec/specs/` — main specifications (domain-models, eventkit-integration, json-export, csv-export, tasks-org-export, cli-interface)
 - `openspec/changes/archive/` — archived changes (spec-driven)
 
 ## Testing (Swift Testing only)

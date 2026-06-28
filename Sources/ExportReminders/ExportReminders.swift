@@ -33,9 +33,10 @@ struct ExportRemindersCLI: AsyncParsableCommand {
         do {
             let allReminders = try await service.fetchAllReminders()
             let filtered = applyFilters(to: allReminders)
-            let url = URL(fileURLWithPath: output)
+            let outputPath = resolvedOutputPath()
+            let url = URL(fileURLWithPath: outputPath)
             try exporter.export(filtered, to: url)
-            print("Экспортировано \(filtered.count) напоминаний в \(output)")
+            print("Экспортировано \(filtered.count) напоминаний в \(outputPath)")
         } catch EventKitReminderServiceError.accessDenied {
             fputs("Ошибка: доступ к напоминаниям запрещён.\n", stderr)
             throw ExitCode(1)
@@ -43,6 +44,12 @@ struct ExportRemindersCLI: AsyncParsableCommand {
             fputs("Ошибка: \(error.localizedDescription)\n", stderr)
             throw ExitCode(2)
         }
+    }
+
+    private func resolvedOutputPath() -> String {
+        let defaultPath = "./reminders_export.json"
+        guard output == defaultPath, format == .tasksOrg else { return output }
+        return "./reminders_export_tasks_org.json"
     }
 
     // MARK: - Private
@@ -53,6 +60,8 @@ struct ExportRemindersCLI: AsyncParsableCommand {
             return JSONExporter()
         case .csv:
             return CSVExporter()
+        case .tasksOrg:
+            return TasksOrgConverter()
         }
     }
 
