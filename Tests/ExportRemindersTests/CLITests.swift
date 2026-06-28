@@ -47,6 +47,32 @@ func cliFiltersByCompleted() async throws {
     #expect(exported[0].isCompleted)
 }
 
+@Test("CLI с --format tasks-org и без --output использует reminders_export_tasks_org.json")
+func cliTasksOrgDefaultOutputPath() async throws {
+    let reminders = ReminderItem.samples
+    let mockService = MockReminderService(reminders: reminders)
+    let mockExporter = MockReminderExporter()
+
+    let cli = try ExportRemindersCLI.parse(["--format", "tasks-org"])
+    try await cli.run(service: mockService, exporter: mockExporter)
+
+    let exportedURL = try #require(mockExporter.exportURL)
+    #expect(exportedURL.path.hasSuffix("reminders_export_tasks_org.json"))
+}
+
+@Test("CLI с --format tasks-org и явным --output использует указанный путь")
+func cliTasksOrgCustomOutputPath() async throws {
+    let reminders = ReminderItem.samples
+    let mockService = MockReminderService(reminders: reminders)
+    let mockExporter = MockReminderExporter()
+
+    let cli = try ExportRemindersCLI.parse(["--format", "tasks-org", "--output", "./custom_tasks_org.json"])
+    try await cli.run(service: mockService, exporter: mockExporter)
+
+    let exportedURL = try #require(mockExporter.exportURL)
+    #expect(exportedURL.path.hasSuffix("custom_tasks_org.json"))
+}
+
 @Test("CLI выводит сообщение об ошибке доступа в stderr")
 func cliReportsAccessDenied() async {
     let mockService = MockReminderService(

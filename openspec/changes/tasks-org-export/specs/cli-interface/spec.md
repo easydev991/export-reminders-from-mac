@@ -26,6 +26,16 @@
 - **WHEN** команда вызвана с `--format xml`
 - **THEN** выводится сообщение об ошибке и `--help`
 
+### Requirement: Makefile target `export-tasks-org`
+
+В корневом `Makefile` SHALL быть определён фиктивный таргет `export-tasks-org`, который делегирует выполнение универсальному таргету `export` с аргументами `--format tasks-org`.
+
+#### Scenario: Запуск `make export-tasks-org`
+
+- **WHEN** пользователь вызывает `make export-tasks-org`
+- **THEN** выполняется `make export ARGS="--format tasks-org"`
+- **THEN** дефолтное имя выходного файла — `reminders_export_tasks_org.json`
+
 ### Requirement: CLI точка входа
 
 Приложение SHALL использовать `@main` entry point с `AsyncParsableCommand` (требуется для асинхронного `run()`). Имя команды SHALL быть `export-reminders`.

@@ -12,6 +12,6 @@ struct JSONExporter: ReminderExporterProtocol {
         encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
 
         let data = try encoder.encode(reminders)
-        try data.write(to: url)
+        try data.write(to: url, options: .atomic)
     }
 }

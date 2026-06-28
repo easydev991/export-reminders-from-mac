@@ -69,6 +69,22 @@ func jsonExporterOmitsNilFields() throws {
     try FileManager.default.removeItem(at: url)
 }
 
+@Test("JSONExporter перезаписывает существующий файл")
+func jsonExporterOverwritesExistingFile() throws {
+    let exporter = JSONExporter()
+    let url = makeTempURL(extension: "json")
+
+    try "old content".write(to: url, atomically: true, encoding: .utf8)
+    try exporter.export([], to: url)
+
+    let data = try Data(contentsOf: url)
+    let content = try #require(String(data: data, encoding: .utf8))
+    #expect(content.contains("["))
+    #expect(content.contains("]"))
+
+    try FileManager.default.removeItem(at: url)
+}
+
 @Test("JSONExporter выбрасывает ошибку при недоступной директории")
 func jsonExporterWriteError() {
     let exporter = JSONExporter()
@@ -226,6 +242,41 @@ func csvExporterDateFormat() throws {
     let content = try #require(String(data: data, encoding: .utf8))
 
     #expect(content.contains("2026-06-25T10:30:00Z"))
+
+    try FileManager.default.removeItem(at: url)
+}
+
+@Test("CSVExporter перезаписывает существующий файл")
+func csvExporterOverwritesExistingFile() throws {
+    let exporter = CSVExporter()
+    let url = makeTempURL(extension: "csv")
+
+    try "old content".write(to: url, atomically: true, encoding: .utf8)
+    try exporter.export([], to: url)
+
+    let data = try Data(contentsOf: url)
+    let content = try #require(String(data: data, encoding: .utf8))
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+
+    #expect(content == "id,listName,title,notes,dueDate,completionDate,creationDate,modificationDate,priority,isCompleted,recurrenceRule,url")
+
+    try FileManager.default.removeItem(at: url)
+}
+
+// MARK: - TasksOrgConverter
+
+@Test("TasksOrgConverter перезаписывает существующий файл")
+func tasksOrgConverterOverwritesExistingFile() throws {
+    let exporter = TasksOrgConverter()
+    let url = makeTempURL(extension: "json")
+
+    try "old content".write(to: url, atomically: true, encoding: .utf8)
+    try exporter.export([ReminderItem.sample], to: url)
+
+    let data = try Data(contentsOf: url)
+    let root = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+    #expect(root != nil)
+    #expect(root?["version"] as? Int == 150_704)
 
     try FileManager.default.removeItem(at: url)
 }

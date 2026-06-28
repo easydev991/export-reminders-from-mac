@@ -42,6 +42,9 @@
 
 - `tasks-org-export`: Исправление совместимости с нативным backup-форматом Tasks.org: `completionDate` вместо `completed`, `creationDate`/`modificationDate` вместо `created`/`modified`, опускание `dueDate` при отсутствии значения, обновлённая структура обёртки задачи, версия backup `150704`, локальный аккаунт с `accountType = 2`.
 - `cli-interface`: Добавление значения `tasks-org` в перечисление `Format` и дефолтного имени выходного файла `reminders_export_tasks_org.json`.
+- `build-automation`: Добавление Makefile-таргета `export-tasks-org` для однокомандного экспорта в формат Tasks.org.
+- `file-export`: Все экспортёры перезаписывают существующий выходной файл при повторном запуске.
+- `code-quality`: Сокращение реализации и тестов Tasks.org-конвертера без изменения поведения (дефолтные пустые коллекции, упрощение UUID/цвета/RRULE, параметризованные тесты).
 
 ## Impact
 
@@ -49,5 +52,8 @@
 - **Изменённые модели**: `Sources/ExportReminders/Models/TasksOrg/` — переименование полей (`creationDate`, `modificationDate`, `completionDate`), перенос `caldavTasks` на уровень обёртки, обновление `version` до `150704`, `CaldavAccount` с `accountType = 2` (TYPE_LOCAL)
 - **Изменённый файл**: `Sources/ExportReminders/Exporters/Format.swift` — новое значение `tasks-org`
 - **Изменённый файл**: `Sources/ExportReminders/ExportReminders.swift` — маппинг `Format.tasksOrg` → вызов конвертера + запись результата
-- **Новые/обновлённые тесты**: `Tests/ExportRemindersTests/Converters/TasksOrgConverterTests.swift` — тесты на исправленную совместимость с Tasks.org
-- **Не затрагивает**: `ReminderItem`, `JSONExporter`, `CSVExporter`, `EventKitReminderService`
+- **Новые/обновлённые тесты**: `Tests/ExportRemindersTests/Converters/TasksOrgConverterTests.swift` — тесты на исправленную совместимость с Tasks.org; упрощение/объединение избыточных кейсов
+- **Новые тесты**: `Tests/ExportRemindersTests/CLITests.swift` — тесты на дефолтный путь для `--format tasks-org`
+- **Новые тесты**: `Tests/ExportRemindersTests/ExporterTests.swift` — тесты на перезапись существующего файла всеми экспортёрами
+- **Изменённый файл**: `Makefile` — таргет `export-tasks-org`
+- **Не затрагивает**: `ReminderItem`, `JSONExporter` (кроме перезаписи), `CSVExporter` (кроме перезаписи), `EventKitReminderService`

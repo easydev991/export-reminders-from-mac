@@ -21,17 +21,7 @@ struct TasksOrgConverter {
         let data = TasksOrgData(
             tasks: wrappers,
             caldavAccounts: account.map { [$0] } ?? [],
-            caldavCalendars: calendars,
-            places: [],
-            tags: [],
-            filters: [],
-            taskListMetadata: [],
-            taskAttachments: [],
-            intPrefs: [:],
-            longPrefs: [:],
-            stringPrefs: [:],
-            boolPrefs: [:],
-            setPrefs: [:]
+            caldavCalendars: calendars
         )
 
         let backup = TasksOrgBackup(
@@ -111,15 +101,9 @@ private func appendURL(_ notes: String?, _ url: String?) -> String? {
 private func normalizeRecurrence(_ rule: String?) -> String? {
     guard let rule else { return nil }
     guard let rruleRange = rule.range(of: "RRULE") else { return nil }
-    var substring = String(rule[rruleRange.upperBound...])
-    // Tasks.org feeds the value directly into ical4j's RRule parser, which only
-    // accepts `FREQ=...` or the legacy `RRULE:FREQ=...` form. The space that
-    // EventKit inserts (`RRULE FREQ=...`) is invalid, so drop the prefix and any
-    // trailing separator (colon or space).
-    if substring.hasPrefix(":") || substring.hasPrefix(" ") {
-        substring = String(substring.dropFirst())
-    }
-    guard substring.localizedUppercase.contains("FREQ=") else { return nil }
+    let substring = String(rule[rruleRange.upperBound...])
+        .trimmingCharacters(in: [":", " "])
+    guard substring.uppercased().contains("FREQ=") else { return nil }
     return substring
 }
 
@@ -128,21 +112,18 @@ private func deterministicUUID(_ input: String) -> String {
     var bytes = Array(digest.prefix(16))
     bytes[6] = (bytes[6] & 0x0F) | 0x50 // version 5
     bytes[8] = (bytes[8] & 0x3F) | 0x80 // variant RFC 4122
-    return String(format: "%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X",
-                  bytes[0], bytes[1], bytes[2], bytes[3],
-                  bytes[4], bytes[5],
-                  bytes[6], bytes[7],
-                  bytes[8], bytes[9],
-                  bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15])
+    let hex = bytes.map { String(format: "%02X", $0) }.joined()
+    let p8 = hex.index(hex.startIndex, offsetBy: 8)
+    let p12 = hex.index(hex.startIndex, offsetBy: 12)
+    let p16 = hex.index(hex.startIndex, offsetBy: 16)
+    let p20 = hex.index(hex.startIndex, offsetBy: 20)
+    return "\(hex[..<p8])-\(hex[p8 ..< p12])-\(hex[p12 ..< p16])-\(hex[p16 ..< p20])-\(hex[p20...])"
 }
 
 private func colorForList(_ name: String) -> Int {
     let digest = SHA256.hash(data: Data(name.utf8))
-    let bytes = Array(digest.prefix(4))
-    var value: UInt32 = 0
-    for byte in bytes {
-        value = (value << 8) | UInt32(byte)
-    }
+    let raw = Data(digest.prefix(4)).withUnsafeBytes { $0.load(as: UInt32.self) }
+    var value = UInt32(bigEndian: raw)
     value |= 0xFF00_0000 // alpha
     return Int(Int32(bitPattern: value)) // signed 32-bit, as expected by Kotlin Int
 }
@@ -150,6 +131,6 @@ private func colorForList(_ name: String) -> Int {
 extension TasksOrgConverter: ReminderExporterProtocol {
     func export(_ reminders: [ReminderItem], to url: URL) throws {
         let data = try convert(reminders)
-        try data.write(to: url)
+        try data.write(to: url, options: .atomic)
     }
 }

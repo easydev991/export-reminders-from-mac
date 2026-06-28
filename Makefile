@@ -6,12 +6,15 @@ SHELL := /bin/bash
 
 ARGS ?= --format json --output ./reminders.json
 
-.PHONY: export setup help
+.PHONY: export export-tasks-org setup help
 
 export: ## Build, sign, and export reminders
 	swift build -c release && \
 	codesign --sign - --entitlements entitlements.plist .build/release/ExportReminders && \
 	.build/release/ExportReminders $(ARGS)
+
+export-tasks-org: ## Build, sign, and export reminders to Tasks.org format
+	@$(MAKE) export ARGS="--format tasks-org"
 
 setup: ## Check and install development tools (Homebrew, SwiftFormat, Periphery)
 	@echo "=== Checking development tools ==="
@@ -57,6 +60,7 @@ setup: ## Check and install development tools (Homebrew, SwiftFormat, Periphery)
 help: ## Show this help
 	@echo "Available targets:"
 	@echo "  make export                                  Build, sign, and export reminders to JSON"
+	@echo "  make export-tasks-org                        Build, sign, and export reminders to Tasks.org format"
 	@echo "  make export ARGS=\"--format csv --output ...\" Export to CSV"
 	@echo "  make export ARGS=\"--format tasks-org --output ...\" Export to Tasks.org"
 	@echo "  make setup                                   Check and install development tools"

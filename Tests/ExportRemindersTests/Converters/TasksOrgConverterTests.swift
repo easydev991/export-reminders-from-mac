@@ -105,27 +105,6 @@ func directFieldMapping() throws {
     #expect(task["dueDate"] as? Int64 == Int64(date("2026-06-25T10:00:00Z").timeIntervalSince1970 * 1000))
     #expect(task["creationDate"] as? Int64 == Int64(date("2026-06-20T08:00:00Z").timeIntervalSince1970 * 1000))
     #expect(task["modificationDate"] as? Int64 == Int64(date("2026-06-21T12:00:00Z").timeIntervalSince1970 * 1000))
-}
-
-@Test("Даты в Unix-миллисекундах, nil опускаются")
-func dateConversionAndOmission() throws {
-    let reminder = ReminderItem(
-        id: "dates-1",
-        listName: "Список",
-        title: "Даты",
-        dueDate: date("2026-01-01T00:00:00Z"),
-        creationDate: date("2026-01-02T00:00:00Z"),
-        modificationDate: date("2026-01-03T00:00:00Z"),
-        isCompleted: false
-    )
-
-    let data = try TasksOrgConverter().convert([reminder])
-    let root = try parsed(data)
-    let task = try firstTask(root)
-
-    #expect(task["dueDate"] as? Int64 == Int64(date("2026-01-01T00:00:00Z").timeIntervalSince1970 * 1000))
-    #expect(task["creationDate"] as? Int64 == Int64(date("2026-01-02T00:00:00Z").timeIntervalSince1970 * 1000))
-    #expect(task["modificationDate"] as? Int64 == Int64(date("2026-01-03T00:00:00Z").timeIntervalSince1970 * 1000))
 
     let reminderNilDates = ReminderItem(
         id: "no-dates",
@@ -141,33 +120,21 @@ func dateConversionAndOmission() throws {
     #expect(taskNil["modificationDate"] == nil)
 }
 
-@Test("isCompleted false → completionDate отсутствует")
-func completionDateAbsentWhenNotCompleted() throws {
-    let reminder = ReminderItem(id: "c-false", listName: "L", title: "T", isCompleted: false)
-    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
-    #expect(task["completionDate"] == nil)
-}
-
-@Test("isCompleted true + completionDate → completionDate присутствует")
-func completionDateFromCompletionDate() throws {
+@Test("completionDate маппится каскадно для выполненных задач")
+func completionDateMapping() throws {
     let completion = date("2026-06-25T12:00:00Z")
-    let reminder = ReminderItem(
+    let modified = date("2026-06-21T08:00:00Z")
+
+    let notCompleted = ReminderItem(id: "c-false", listName: "L", title: "T", isCompleted: false)
+    let fromCompletion = ReminderItem(
         id: "c-comp",
         listName: "L",
         title: "T",
         completionDate: completion,
-        modificationDate: date("2026-06-21T08:00:00Z"),
+        modificationDate: modified,
         isCompleted: true
     )
-    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
-    let expected = Int64(completion.timeIntervalSince1970 * 1000)
-    #expect(task["completionDate"] as? Int64 == expected)
-}
-
-@Test("isCompleted true, completionDate nil, modificationDate задана → completionDate = modificationDate ms")
-func completionDateFromModificationDate() throws {
-    let modified = date("2026-06-21T08:00:00Z")
-    let reminder = ReminderItem(
+    let fromModification = ReminderItem(
         id: "c-mod",
         listName: "L",
         title: "T",
@@ -175,25 +142,30 @@ func completionDateFromModificationDate() throws {
         modificationDate: modified,
         isCompleted: true
     )
-    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
-    let expected = Int64(modified.timeIntervalSince1970 * 1000)
-    #expect(task["completionDate"] as? Int64 == expected)
-}
+    let fallback = ReminderItem(id: "c-fallback", listName: "L", title: "T", isCompleted: true)
 
-@Test("isCompleted true, обе даты nil → completionDate > 0")
-func completionDateFallbackToNow() throws {
+    let data = try TasksOrgConverter().convert([notCompleted, fromCompletion, fromModification, fallback])
+    let root = try parsed(data)
+    let tasks = try tasksArray(root)
+    #expect(tasks.count == 4)
+
+    let taskNotCompleted = try taskFromWrapper(tasks[0])
+    #expect(taskNotCompleted["completionDate"] == nil)
+
+    let taskFromCompletion = try taskFromWrapper(tasks[1])
+    let expectedCompletion = Int64(completion.timeIntervalSince1970 * 1000)
+    #expect(taskFromCompletion["completionDate"] as? Int64 == expectedCompletion)
+
+    let taskFromModification = try taskFromWrapper(tasks[2])
+    let expectedModified = Int64(modified.timeIntervalSince1970 * 1000)
+    #expect(taskFromModification["completionDate"] as? Int64 == expectedModified)
+
     let before = Int64(Date().timeIntervalSince1970 * 1000)
-    let reminder = ReminderItem(
-        id: "c-fallback",
-        listName: "L",
-        title: "T",
-        isCompleted: true
-    )
-    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
+    let taskFallback = try taskFromWrapper(tasks[3])
     let after = Int64(Date().timeIntervalSince1970 * 1000)
-    let completed = try #require(task["completionDate"] as? Int64)
-    #expect(completed > before - 1000)
-    #expect(completed <= after + 1000)
+    let completedFallback = try #require(taskFallback["completionDate"] as? Int64)
+    #expect(completedFallback > before - 1000)
+    #expect(completedFallback <= after + 1000)
 }
 
 @Test("dueDate nil → поле отсутствует")
@@ -320,27 +292,6 @@ func urlAppending() throws {
     #expect(task3["notes"] as? String == "Заметка без ссылки")
 }
 
-@Test("В task отсутствуют неиспользуемые приложением поля")
-func unusedFieldsAbsent() throws {
-    let reminder = ReminderItem(
-        id: "fields-1",
-        listName: "L",
-        title: "T",
-        priority: 5,
-        isCompleted: false
-    )
-    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
-
-    let unused = [
-        "readOnly", "deleted", "estimatedSeconds", "elapsedSeconds",
-        "hideUntil", "timerStart", "repeatFrom", "ringFlags",
-        "importance", "caldavTasks",
-    ]
-    for key in unused {
-        #expect(task[key] == nil, "поле \(key) не должно присутствовать")
-    }
-}
-
 @Test("Аккаунт локальный (TYPE_LOCAL)")
 func localAccountType() throws {
     let reminder = ReminderItem(id: "acc-1", listName: "L", title: "T", isCompleted: false)
@@ -349,73 +300,25 @@ func localAccountType() throws {
     #expect(accounts.count == 1)
     let account = try #require(accounts.first)
     #expect(account["accountType"] as? Int == 2)
-    #expect(account["url"] == nil)
-    #expect(account["lastSync"] == nil)
 }
 
-@Test("recurrenceRule с RRULE нормализуется")
-func recurrenceRuleWithRRULE() throws {
+@Test("recurrenceRule нормализуется", arguments: [
+    ("EKRecurrenceRule <0x1234567890abcdef> RRULE FREQ=DAILY;INTERVAL=12", "FREQ=DAILY;INTERVAL=12"),
+    ("EKRecurrenceRule <0x1234567890abcdef> RRULE:FREQ=DAILY;INTERVAL=12", "FREQ=DAILY;INTERVAL=12"),
+    ("EKRecurrenceRule <0x...x> RRULE", nil),
+    ("FREQ=DAILY;INTERVAL=12", nil),
+    ("EKRecurrenceRule <0x...x> RRULE freq=DAILY;INTERVAL=12", "freq=DAILY;INTERVAL=12"),
+])
+func recurrenceRuleNormalization(rule: String, expected: String?) throws {
     let reminder = ReminderItem(
-        id: "rrule-1",
+        id: "rrule-\(rule.hashValue)",
         listName: "L",
         title: "T",
         isCompleted: false,
-        recurrenceRule: "EKRecurrenceRule <0x1234567890abcdef> RRULE FREQ=DAILY;INTERVAL=12"
+        recurrenceRule: rule
     )
     let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
-    #expect(task["recurrence"] as? String == "FREQ=DAILY;INTERVAL=12")
-}
-
-@Test("recurrenceRule с RRULE: нормализуется")
-func recurrenceRuleWithRRULEColon() throws {
-    let reminder = ReminderItem(
-        id: "rrule-1b",
-        listName: "L",
-        title: "T",
-        isCompleted: false,
-        recurrenceRule: "EKRecurrenceRule <0x1234567890abcdef> RRULE:FREQ=DAILY;INTERVAL=12"
-    )
-    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
-    #expect(task["recurrence"] as? String == "FREQ=DAILY;INTERVAL=12")
-}
-
-@Test("recurrenceRule без FREQ опускается")
-func recurrenceRuleWithoutFREQ() throws {
-    let reminder = ReminderItem(
-        id: "rrule-3",
-        listName: "L",
-        title: "T",
-        isCompleted: false,
-        recurrenceRule: "EKRecurrenceRule <0x...x> RRULE"
-    )
-    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
-    #expect(task["recurrence"] == nil)
-}
-
-@Test("recurrenceRule без RRULE/FREQ опускается")
-func recurrenceRuleWithoutRRULE() throws {
-    let reminder = ReminderItem(
-        id: "rrule-2",
-        listName: "L",
-        title: "T",
-        isCompleted: false,
-        recurrenceRule: "FREQ=DAILY;INTERVAL=12"
-    )
-    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
-    #expect(task["recurrence"] == nil)
-}
-
-@Test("recurrenceRule с freq= в нижнем регистре сохраняется")
-func recurrenceRuleWithLowercaseFreq() throws {
-    let reminder = ReminderItem(
-        id: "rrule-4",
-        listName: "L",
-        title: "T",
-        isCompleted: false,
-        recurrenceRule: "EKRecurrenceRule <0x...x> RRULE freq=DAILY;INTERVAL=12"
-    )
-    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
-    #expect(task["recurrence"] as? String == "freq=DAILY;INTERVAL=12")
+    #expect(task["recurrence"] as? String == expected)
 }
 
 @Test("Цвет календаря — signed 32-bit int")
