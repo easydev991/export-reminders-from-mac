@@ -118,14 +118,14 @@ x-apple-reminder:...,Покупки,Молоко,2.5%,,,,,2025-12-01T10:00:00Z,0
 
 ### Tasks.org
 
-Backup-JSON для импорта в Android-приложение Tasks.org. Даты — Unix timestamp в миллисекундах, приоритеты перекодированы (Apple: 0/1/5/9 → Tasks.org: 3/0/1/2), списки Apple Reminders мапятся в Caldav-календари. Поле `url` добавляется в конец `notes`.
+Backup-JSON для импорта в Android-приложение Tasks.org. Даты — Unix timestamp в миллисекундах, списки Apple Reminders мапятся в Caldav-календари. Поле `url` добавляется в конец `notes`.
 
 ```json
 {
-  "version": 157,
+  "version": 150704,
   "timestamp": 1712345678901,
   "data": {
-    "tasks": [{ "task": { "title": "Молоко", "importance": 3, ... } }],
+    "tasks": [{ "task": { "title": "Молоко", ... } }],
     "caldavAccounts": [{ "uuid": "...", "name": "export-reminders" }],
     "caldavCalendars": [{ "uuid": "...", "name": "Покупки" }]
   }

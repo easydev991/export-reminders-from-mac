@@ -8,7 +8,7 @@ struct ExportRemindersCLI: AsyncParsableCommand {
         abstract: "Export reminders from Apple Reminders to a file."
     )
 
-    @Option(name: .long, help: "Output format: json or csv (default: json)")
+    @Option(name: .long, help: "Output format: json, csv or tasks-org (default: json)")
     var format: Format = .json
 
     @Option(name: .long, help: "Output file path (default: ./reminders_export.json)")
@@ -56,12 +56,9 @@ struct ExportRemindersCLI: AsyncParsableCommand {
 
     private func makeExporter(for format: Format) -> ReminderExporterProtocol {
         switch format {
-        case .json:
-            return JSONExporter()
-        case .csv:
-            return CSVExporter()
-        case .tasksOrg:
-            return TasksOrgConverter()
+        case .json: JSONExporter()
+        case .csv: CSVExporter()
+        case .tasksOrg: TasksOrgConverter()
         }
     }
 

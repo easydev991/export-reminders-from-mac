@@ -7,9 +7,9 @@ enum EventKitReminderServiceError: Error, Equatable {
 
     static func == (lhs: EventKitReminderServiceError, rhs: EventKitReminderServiceError) -> Bool {
         switch (lhs, rhs) {
-        case (.accessDenied, .accessDenied): return true
-        case (.fetchFailed, .fetchFailed): return true
-        default: return false
+        case (.accessDenied, .accessDenied): true
+        case (.fetchFailed, .fetchFailed): true
+        default: false
         }
     }
 }

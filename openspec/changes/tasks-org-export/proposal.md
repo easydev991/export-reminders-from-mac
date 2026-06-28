@@ -9,7 +9,6 @@
 - Конвертер также доступен как **утилита парсинга JSON-файла**: можно передать уже экспортированный универсальный JSON и получить Tasks.org JSON на выходе
 - Выходной файл: Tasks.org backup JSON с обёрткой `{version, timestamp, data: {tasks, caldavCalendars, caldavAccounts, ...}}`
 - Конвертация дат: ISO 8601 → Unix timestamp в миллисекундах (Long)
-- Маппинг приоритета: шкала Apple EKReminderPriority (0=none, 1=high, 5=medium, 9=low) → Tasks.org (0=HIGH, 1=MED, 2=LOW, 3=NONE)
 - Преобразование `isCompleted: Bool` → `completionDate: Long?` (включается только для выполненных задач, значение — из `completionDate` / `modificationDate` / текущего timestamp)
 - Привязка списков Apple Reminders (`listName`) к Caldav-календарям Tasks.org
 - Поле `url` напоминания добавляется в конец `notes` (как текстовая ссылка)
@@ -24,7 +23,7 @@
 - Обёртка задачи: добавление пустых массивов `alarms`, `geofences`, `tags`, `comments`, `attachments`, `caldavTasks` на уровне задачи
 - `caldavTasks` переносится из `task` на уровень обёртки задачи
 - `caldavTasks.remoteId` генерируется как строковый идентификатор на основе `ReminderItem.id` (соответствует типу `String?` в Tasks.org и нативному экспорту)
-- Удаление неиспользуемых приложением полей из `task`: `readOnly`, `deleted`, `estimatedSeconds`, `elapsedSeconds`, `hideUntil`, `timerStart`, `repeatFrom`, `ringFlags`, `importance` (если не используется), `caldavTasks`
+- Удаление неиспользуемых приложением полей из `task`: `readOnly`, `deleted`, `estimatedSeconds`, `elapsedSeconds`, `hideUntil`, `timerStart`, `repeatFrom`, `ringFlags`, `caldavTasks`
 - Версия backup-формата обновляется с `157` до `150704`
 - `caldavAccounts`: использование `accountType = 2` (TYPE_LOCAL) без `url`/`lastSync` — как в рабочем примере нативного экспорта Tasks.org для локальных данных
 - `caldavCalendars.color`: использование реального цвета календаря в формате Android `Color` (signed 32-bit int, alpha=0xFF) вместо `0`

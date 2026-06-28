@@ -56,34 +56,6 @@
 - **WHEN** `dueDate` равен `nil`
 - **THEN** в JSON поле `dueDate` отсутствует (не записывается как `0`)
 
-### Requirement: Маппинг приоритета Apple → Tasks.org
-
-Приоритет `ReminderItem.priority` (0–9, шкала Apple EKReminderPriority) SHALL быть сконвертирован в шкалу Tasks.org: 0=HIGH, 1=MEDIUM, 2=LOW, 3=NONE. Правила маппинга:
-- `priority == 1` (Apple High) → `0` (HIGH)
-- `priority == 5` (Apple Medium) → `1` (MEDIUM)
-- `priority == 9` (Apple Low) → `2` (LOW)
-- `priority == 0` или любое другое значение → `3` (NONE)
-
-#### Scenario: Высокий приоритет Apple → HIGH
-
-- **WHEN** `priority == 1`
-- **THEN** в JSON `importance` равно `0`
-
-#### Scenario: Средний приоритет Apple → MEDIUM
-
-- **WHEN** `priority == 5`
-- **THEN** в JSON `importance` равно `1`
-
-#### Scenario: Низкий приоритет Apple → LOW
-
-- **WHEN** `priority == 9`
-- **THEN** в JSON `importance` равно `2`
-
-#### Scenario: Без приоритета → NONE
-
-- **WHEN** `priority == 0`
-- **THEN** в JSON `importance` равно `3`
-
 ### Requirement: Преобразование isCompleted в completionDate
 
 Статус выполнения `isCompleted` SHALL быть преобразован в поле `completionDate` (Long) формата Tasks.org каскадным методом:
@@ -197,7 +169,7 @@
 Поле `id` напоминания используется для генерации `remoteId` в `CaldavTask` (строковый идентификатор).
 
 Следующие поля SHALL отсутствовать в `task`, так как не используются приложением Tasks.org:
-- `readOnly`, `deleted`, `estimatedSeconds`, `elapsedSeconds`, `hideUntil`, `timerStart`, `repeatFrom`, `ringFlags`, `importance`, `caldavTasks`
+- `readOnly`, `deleted`, `estimatedSeconds`, `elapsedSeconds`, `hideUntil`, `timerStart`, `repeatFrom`, `ringFlags`, `caldavTasks`
 
 #### Scenario: Все поля скопированы
 
