@@ -41,8 +41,13 @@
 - **THEN** возвращается массив `[ReminderItem]`, где каждое напоминание содержит `listName` из родительского `EKCalendar`
 
 #### Scenario: Напоминание со всеми заполненными полями
-- **WHEN** `EKReminder` имеет все возможные поля (заголовок, заметки, дата, приоритет, URL, правило повторения)
+- **WHEN** `EKReminder` имеет все возможные поля (заголовок, заметки, дата, дата начала, приоритет, URL, правило повторения)
 - **THEN** соответствующий `ReminderItem` содержит все поля с корректными значениями
+- **THEN** поле `startDate` равно дате из `EKReminder.startDateComponents`
+
+#### Scenario: Напоминание без startDateComponents
+- **WHEN** `EKReminder` не содержит `startDateComponents`
+- **THEN** соответствующий `ReminderItem.startDate` равен `nil`
 
 #### Scenario: Пустой результат
 - **WHEN** в EventKit нет напоминаний
