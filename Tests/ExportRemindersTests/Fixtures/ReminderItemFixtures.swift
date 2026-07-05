@@ -9,6 +9,7 @@ extension ReminderItem {
         title: "Купить молоко",
         notes: "Лучше безлактозное",
         dueDate: ISO8601DateFormatter().date(from: "2026-06-25T10:30:00Z"),
+        startDate: ISO8601DateFormatter().date(from: "2025-06-20T09:00:00Z"),
         completionDate: ISO8601DateFormatter().date(from: "2026-06-25T12:00:00Z"),
         creationDate: ISO8601DateFormatter().date(from: "2026-06-20T08:00:00Z"),
         modificationDate: ISO8601DateFormatter().date(from: "2026-06-21T15:00:00Z"),

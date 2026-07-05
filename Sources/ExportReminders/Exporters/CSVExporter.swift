@@ -14,7 +14,7 @@ struct CSVExporter: ReminderExporterProtocol {
     }()
 
     private let headers: [String] = [
-        "id", "listName", "title", "notes", "dueDate", "completionDate",
+        "id", "listName", "title", "notes", "dueDate", "startDate", "completionDate",
         "creationDate", "modificationDate", "priority", "isCompleted",
         "recurrenceRule", "url",
     ]
@@ -40,6 +40,7 @@ struct CSVExporter: ReminderExporterProtocol {
             item.title,
             item.notes ?? "",
             item.dueDate.map { dateFormatter.string(from: $0) } ?? "",
+            item.startDate.map { dateFormatter.string(from: $0) } ?? "",
             item.completionDate.map { dateFormatter.string(from: $0) } ?? "",
             item.creationDate.map { dateFormatter.string(from: $0) } ?? "",
             item.modificationDate.map { dateFormatter.string(from: $0) } ?? "",

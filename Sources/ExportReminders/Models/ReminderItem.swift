@@ -11,6 +11,7 @@ struct ReminderItem: Codable, Equatable {
     let title: String
     let notes: String?
     let dueDate: Date?
+    let startDate: Date?
     let completionDate: Date?
     let creationDate: Date?
     let modificationDate: Date?
@@ -24,6 +25,7 @@ struct ReminderItem: Codable, Equatable {
         title: String,
         notes: String? = nil,
         dueDate: Date? = nil,
+        startDate: Date? = nil,
         completionDate: Date? = nil,
         creationDate: Date? = nil,
         modificationDate: Date? = nil,
@@ -37,6 +39,7 @@ struct ReminderItem: Codable, Equatable {
         self.title = title
         self.notes = notes
         self.dueDate = dueDate
+        self.startDate = startDate
         self.completionDate = completionDate
         self.creationDate = creationDate
         self.modificationDate = modificationDate

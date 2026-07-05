@@ -64,6 +64,7 @@ func jsonExporterOmitsNilFields() throws {
 
     #expect(!content.contains("\"notes\""))
     #expect(!content.contains("\"dueDate\""))
+    #expect(!content.contains("\"startDate\""))
     #expect(!content.contains("\"url\""))
 
     try FileManager.default.removeItem(at: url)
@@ -107,7 +108,7 @@ func csvExporterHeaders() throws {
     let content = try #require(String(data: data, encoding: .utf8))
         .trimmingCharacters(in: .whitespacesAndNewlines)
 
-    let expectedHeaders = "id,listName,title,notes,dueDate,completionDate,creationDate,modificationDate,priority,isCompleted,recurrenceRule,url"
+    let expectedHeaders = "id,listName,title,notes,dueDate,startDate,completionDate,creationDate,modificationDate,priority,isCompleted,recurrenceRule,url"
     #expect(content == expectedHeaders)
 
     try FileManager.default.removeItem(at: url)
@@ -179,7 +180,7 @@ func csvExporterEscapesQuotes() throws {
     let content = try #require(String(data: data, encoding: .utf8))
 
     let title = reminder.title
-    #expect(content.contains(title) == false)
+    #expect(!content.contains(title))
     #expect(content.contains("\"Сказать \"\"Привет\"\" коллегам\""))
 
     try FileManager.default.removeItem(at: url)
@@ -201,12 +202,12 @@ func csvExporterNilFields() throws {
     let content = try #require(String(data: data, encoding: .utf8))
     let lines = content.split(separator: "\n")
 
-    // Header: 12 cols, Data: 12 cols with some empty
+    // Header: 13 cols, Data: 13 cols with some empty
     let dataLine = lines[1]
     let columns = dataLine.split(separator: ",", omittingEmptySubsequences: false)
-    // notes (index 3), dueDate (4), completionDate (5), creationDate (6),
-    // modificationDate (7), recurrenceRule (10), url (11) are empty
-    #expect(columns.count == 12)
+    // notes (index 3), dueDate (4), startDate (5), completionDate (6), creationDate (7),
+    // modificationDate (8), recurrenceRule (11), url (12) are empty
+    #expect(columns.count == 13)
 
     try FileManager.default.removeItem(at: url)
 }
@@ -258,7 +259,7 @@ func csvExporterOverwritesExistingFile() throws {
     let content = try #require(String(data: data, encoding: .utf8))
         .trimmingCharacters(in: .whitespacesAndNewlines)
 
-    #expect(content == "id,listName,title,notes,dueDate,completionDate,creationDate,modificationDate,priority,isCompleted,recurrenceRule,url")
+    #expect(content == "id,listName,title,notes,dueDate,startDate,completionDate,creationDate,modificationDate,priority,isCompleted,recurrenceRule,url")
 
     try FileManager.default.removeItem(at: url)
 }

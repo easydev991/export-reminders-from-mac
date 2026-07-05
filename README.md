@@ -7,15 +7,11 @@ Swift CLI-инструмент для экспорта напоминаний и
 ## Быстрый старт
 
 ```bash
-# Экспорт напоминаний в JSON (одна команда)
-make export
-# → reminders_export.json в корне проекта
+# Экспорт в формате Tasks.org (сборка + подпись + выгрузка) для импорта в Android-приложение Tasks.org
+make export-tasks-org
 
 # Экспорт в CSV
 make export ARGS="--format csv --output ./reminders.csv"
-
-# Экспорт в Tasks.org (для импорта в Android-приложение Tasks.org)
-make export ARGS="--format tasks-org --output ./reminders_export_tasks_org.json"
 
 # Проверка и установка инструментов разработки
 make setup
@@ -23,7 +19,7 @@ make setup
 
 ## Требования
 
-- macOS 14 (Sonoma) или новее
+- macOS 14+
 - Xcode 15+ **или** Command Line Tools (`xcode-select --install`)
 - Разрешение **Reminders** в Системных настройках → Конфиденциальность и безопасность → Напоминания
 
@@ -109,11 +105,11 @@ ISO 8601 даты, без экранирования слэшей, ключи д
 
 ### CSV
 
-Английские заголовки, 12 колонок, ISO 8601 даты, запятые и кавычки экранированы, nil = пустая строка.
+Английские заголовки, 13 колонок, ISO 8601 даты, запятые и кавычки экранированы, nil = пустая строка.
 
 ```csv
-id,listName,title,notes,dueDate,completionDate,creationDate,modificationDate,priority,isCompleted,recurrenceRule,url
-x-apple-reminder:...,Покупки,Молоко,2.5%,,,2025-12-01T10:00:00Z,2025-12-01T12:00:00Z,0,false,,
+id,listName,title,notes,dueDate,startDate,completionDate,creationDate,modificationDate,priority,isCompleted,recurrenceRule,url
+x-apple-reminder:...,Покупки,Молоко,2.5%,,,,2025-12-01T10:00:00Z,2025-12-01T12:00:00Z,0,false,,
 ```
 
 ### Tasks.org
@@ -156,6 +152,7 @@ Backup-JSON для импорта в Android-приложение Tasks.org. Д�
 | `title`          | String     | Заголовок напоминания        |
 | `notes`          | String?    | Заметки                      |
 | `dueDate`        | Date?      | Срок выполнения              |
+| `startDate`      | Date?      | Дата начала                  |
 | `completionDate` | Date?      | Дата выполнения              |
 | `creationDate`   | Date?      | Дата создания                |
 | `modificationDate`| Date?     | Дата изменения               |

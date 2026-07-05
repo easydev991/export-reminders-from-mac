@@ -55,6 +55,7 @@ final class EventKitReminderService: @unchecked Sendable, ReminderServiceProtoco
             title: ekReminder.title ?? "",
             notes: ekReminder.notes,
             dueDate: ekReminder.dueDateComponents?.date,
+            startDate: ekReminder.startDateComponents?.date,
             completionDate: ekReminder.completionDate,
             creationDate: ekReminder.creationDate,
             modificationDate: ekReminder.lastModifiedDate,

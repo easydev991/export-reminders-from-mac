@@ -116,6 +116,7 @@ func directFieldMapping() throws {
     let taskNil = try firstTask(parsed(dataNil))
 
     #expect(taskNil["dueDate"] == nil)
+    #expect(taskNil["hideUntil"] == nil)
     #expect(taskNil["creationDate"] == nil)
     #expect(taskNil["modificationDate"] == nil)
 }
@@ -144,7 +145,8 @@ func completionDateMapping() throws {
     )
     let fallback = ReminderItem(id: "c-fallback", listName: "L", title: "T", isCompleted: true)
 
-    let data = try TasksOrgConverter().convert([notCompleted, fromCompletion, fromModification, fallback])
+    let fixedNow = Int64(Date().timeIntervalSince1970 * 1000)
+    let data = try TasksOrgConverter().convert([notCompleted, fromCompletion, fromModification, fallback], now: fixedNow)
     let root = try parsed(data)
     let tasks = try tasksArray(root)
     #expect(tasks.count == 4)
@@ -160,12 +162,8 @@ func completionDateMapping() throws {
     let expectedModified = Int64(modified.timeIntervalSince1970 * 1000)
     #expect(taskFromModification["completionDate"] as? Int64 == expectedModified)
 
-    let before = Int64(Date().timeIntervalSince1970 * 1000)
     let taskFallback = try taskFromWrapper(tasks[3])
-    let after = Int64(Date().timeIntervalSince1970 * 1000)
-    let completedFallback = try #require(taskFallback["completionDate"] as? Int64)
-    #expect(completedFallback > before - 1000)
-    #expect(completedFallback <= after + 1000)
+    #expect(taskFallback["completionDate"] as? Int64 == fixedNow)
 }
 
 @Test("dueDate nil → поле отсутствует")
@@ -179,6 +177,44 @@ func dueDateOmittedWhenNil() throws {
     )
     let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
     #expect(task["dueDate"] == nil)
+}
+
+@Test("hideUntil заполняется из startDate")
+func hideUntilFromStartDate() throws {
+    let reminder = ReminderItem(
+        id: "start-only",
+        listName: "L",
+        title: "T",
+        startDate: date("2025-06-20T09:00:00Z"),
+        isCompleted: false
+    )
+    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
+    #expect(task["hideUntil"] as? Int64 == 1_750_410_000_000)
+}
+
+@Test("hideUntil заполняется из dueDate при отсутствии startDate")
+func hideUntilFromDueDate() throws {
+    let reminder = ReminderItem(
+        id: "due-only",
+        listName: "L",
+        title: "T",
+        dueDate: date("2025-06-21T10:30:00Z"),
+        isCompleted: false
+    )
+    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
+    #expect(task["hideUntil"] as? Int64 == 1_750_501_800_000)
+}
+
+@Test("hideUntil отсутствует при отсутствии дат")
+func hideUntilAbsentWithoutDates() throws {
+    let reminder = ReminderItem(
+        id: "no-dates",
+        listName: "L",
+        title: "T",
+        isCompleted: false
+    )
+    let task = try firstTask(parsed(TasksOrgConverter().convert([reminder])))
+    #expect(task["hideUntil"] == nil)
 }
 
 @Test("Структура обёртки задачи")

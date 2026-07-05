@@ -3,6 +3,7 @@ import Foundation
 struct TasksOrgTask: Codable, Equatable {
     let title: String
     let dueDate: Int64?
+    let hideUntil: Int64?
     let creationDate: Int64?
     let modificationDate: Int64?
     let completionDate: Int64?

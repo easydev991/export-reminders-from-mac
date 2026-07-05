@@ -2,8 +2,8 @@ import CryptoKit
 import Foundation
 
 struct TasksOrgConverter {
-    func convert(_ reminders: [ReminderItem]) throws -> Data {
-        let now = Int64(Date().timeIntervalSince1970 * 1000)
+    func convert(_ reminders: [ReminderItem], now: Int64? = nil) throws -> Data {
+        let nowMs = now ?? Int64(Date().timeIntervalSince1970 * 1000)
         let accountUUID = deterministicUUID("export-reminders")
         let account = reminders.isEmpty
             ? nil
@@ -15,7 +15,7 @@ struct TasksOrgConverter {
 
         let calendars = buildCalendars(from: reminders, accountUUID: accountUUID)
         let wrappers = reminders.map { reminder in
-            convertReminder(reminder, now: now)
+            convertReminder(reminder, now: nowMs)
         }
 
         let data = TasksOrgData(
@@ -26,7 +26,7 @@ struct TasksOrgConverter {
 
         let backup = TasksOrgBackup(
             version: 150_704,
-            timestamp: now,
+            timestamp: nowMs,
             data: data
         )
 
@@ -50,6 +50,7 @@ private func convertReminder(_ reminder: ReminderItem, now: Int64) -> TasksOrgTa
     let task = TasksOrgTask(
         title: reminder.title,
         dueDate: dateToUnixMs(reminder.dueDate),
+        hideUntil: dateToUnixMs(reminder.startDate ?? reminder.dueDate),
         creationDate: dateToUnixMs(reminder.creationDate),
         modificationDate: dateToUnixMs(reminder.modificationDate),
         completionDate: reminder.isCompleted ? completionDateFrom(reminder, now: now) : nil,

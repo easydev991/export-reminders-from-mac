@@ -80,14 +80,9 @@ func cliReportsAccessDenied() async {
     )
     let mockExporter = MockReminderExporter()
 
-    do {
+    await #expect(throws: ExitCode.self) {
         let cli = try ExportRemindersCLI.parse(["--format", "json", "--output", "./test.json"])
         try await cli.run(service: mockService, exporter: mockExporter)
-        Issue.record("expected ExitCode to be thrown")
-    } catch is ExitCode {
-        // Expected — CLI prints to stderr and exits with code 1
-    } catch {
-        Issue.record("unexpected error: \(error)")
     }
 }
 
@@ -98,13 +93,8 @@ func cliReportsWriteError() async {
     let mockExporter = MockReminderExporter()
     mockExporter.errorToThrow = NSError(domain: "test", code: 2, userInfo: nil)
 
-    do {
+    await #expect(throws: ExitCode.self) {
         let cli = try ExportRemindersCLI.parse(["--format", "json", "--output", "/nonexistent/output.json"])
         try await cli.run(service: mockService, exporter: mockExporter)
-        Issue.record("expected ExitCode to be thrown")
-    } catch is ExitCode {
-        // Expected — CLI prints to stderr and exits with code 2
-    } catch {
-        Issue.record("unexpected error: \(error)")
     }
 }
